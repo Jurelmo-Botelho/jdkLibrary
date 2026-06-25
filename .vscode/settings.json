@@ -1,0 +1,19 @@
+{
+    "code-runner.executorMap": {
+        "c": "cd $dir && gcc main.c src/*.c -Iinclude -o biblioteca && ./biblioteca"
+    },
+    "code-runner.runInTerminal": true,
+    "code-runner.saveFileBeforeRun": true
+}
+
+
+/*
+{
+    "code-runner.executorMap": {
+        "c": "cd $dir && gcc main.c -o biblioteca && ./biblioteca"
+    },
+    "code-runner.runInTerminal": true,
+    "code-runner.saveFileBeforeRun": true
+}
+*/
+
