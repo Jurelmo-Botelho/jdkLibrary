@@ -10,7 +10,8 @@ typedef struct {
     User *user;
 } Session;
 
-Session auth_login(AVLTree *user_tree);
+
+Session auth_login(AVLTree *user_tree, int id, const char *password);
 void  auth_logout(Session *session);
 int  auth_has_permission(Session *session, Role minimum_role);
 unsigned long auth_hash_password(const char *password);

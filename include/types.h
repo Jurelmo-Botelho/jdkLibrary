@@ -7,14 +7,13 @@
 #define MAX_PUBLISHER     100
 #define MAX_CATEGORY       50
 #define MAX_PHONE          15
-#define MAX_PASSWORD_HASH  20   
+#define MAX_HASH_STRING    32 
 #define MAX_ACTIVE_LOANS    3
 #define DEFAULT_LOAN_DAYS  15 
 
 // Papel no sistema
 typedef enum {
     ROLE_ADMIN     = 0,
-    ROLE_LIBRARIAN = 1,
     ROLE_STUDENT   = 2
 } Role;
 
