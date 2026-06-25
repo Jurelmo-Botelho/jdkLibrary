@@ -11,16 +11,6 @@
 #define MAX_ACTIVE_LOANS    3
 #define DEFAULT_LOAN_DAYS  15 
 
-//Cursos disponíveis 
-typedef enum {
-    COURSE_EINF   = 0,   // Computer Engineering
-    COURSE_CONT   = 1,   // Accounting
-    COURSE_ECIVIL = 2,   // Civil Engineering
-    COURSE_EQ     = 3,   // Chemical Engineering
-    COURSE_EPI    = 4,   // Industrial Production Engineering
-    COURSE_NONE   = 5    // for Admin and Librarian (no course)
-} Course;
-
 // Papel no sistema
 typedef enum {
     ROLE_ADMIN     = 0,
