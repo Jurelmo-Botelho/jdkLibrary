@@ -10,6 +10,12 @@
 
 
 User *user_create(int id, const char *name, const char *phone, Role role, const char *password){
+    if (
+        !validate_user_id(id) || !validate_name(name) ||
+        !validate_phone(phone) || !validate_role(role) ||
+        !validate_password(password)){
+        return NULL;
+    }
     User *user = malloc(sizeof(User));
 
     if (user == NULL){
