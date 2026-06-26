@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/auth.h"
+#include "auth.h"
 
 
 unsigned long auth_hash_password(const char *password)

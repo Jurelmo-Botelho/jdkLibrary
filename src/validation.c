@@ -1,8 +1,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "../include/types.h"
-#include "../include/validation.h"
+#include "types.h"
+#include "validation.h"
 
 
 int validate_user_id(int id)

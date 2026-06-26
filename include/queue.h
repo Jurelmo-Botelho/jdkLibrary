@@ -2,17 +2,37 @@
 #define QUEUE_H
 
 #include "types.h"
-typedef struct QueueNode {
-    int  userNumber;   
-    int  bookCode;     
-    Date reservedOn;   
-    struct QueueNode *next;
-} QueueNode;
 
+//  Nó da fila de reservas 
+typedef struct NoReserva {
+    int numero_utilizador;
+    int codigo_livro;
+    Date data_reserva;
+    struct NoReserva *proximo;
+} NoReserva;
+
+// Fila por livro 
 typedef struct {
-    QueueNode *front;   
-    QueueNode *back;   
-    int  size;    
-} WaitingQueue;
+    int codigo_livro;
+    NoReserva *frente;
+    NoReserva *tras;
+    int tamanho;
+} FilaReservas;
+
+//  FUNÇÕES 
+
+FilaReservas* criarFila(int codigo_livro);
+
+int filaVazia(FilaReservas *fila);
+
+void enfileirarReserva(FilaReservas *fila, int numero_utilizador, Date data);
+
+int desenfileirarReserva(FilaReservas *fila);
+
+NoReserva* frenteFila(FilaReservas *fila);
+
+int tamanhoFila(FilaReservas *fila);
+
+void destruirFila(FilaReservas *fila);
 
 #endif

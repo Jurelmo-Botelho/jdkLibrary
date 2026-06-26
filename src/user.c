@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/user.h"
-#include "../include/validation.h"
-#include "../include/auth.h"
-#include "../include/avl.h"
+#include "user.h"
+#include "validation.h"
+#include "auth.h"
+#include "avl.h"
 
 
 
