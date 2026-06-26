@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-int validate_user_number(int number);
+int validate_user_number(int id);
 
 int validate_name(const char *name);
 

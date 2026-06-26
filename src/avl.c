@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "avl.h"
+#include "book.h"
 
 static int max(int a, int b) {
     return (a > b) ? a : b;
@@ -162,6 +163,7 @@ static AVLNode *remove_recursive(AVLNode *node, int key) {
     return balance(node);
 }
 
+
 //Funções públicas
 
 AVLTree *avl_create(void) {
@@ -175,9 +177,19 @@ AVLTree *avl_create(void) {
     return tree;
 }
 
-void avl_destroy(AVLTree *tree, void (*free_data)(void *)) {
+static void destroy_recursive(AVLNode *node) {
+    if (node == NULL) return;
+    
+    destroy_recursive(node->left);
+    destroy_recursive(node->right);
+    
+    free(node);
+}
+
+void avl_destroy(AVLTree *tree, void (*free_data)(void *data)) {
     if (tree == NULL) return;
-    destroy_recursive(tree->root, free_data);
+    
+    destroy_recursive(tree->root);
     tree->root = NULL;
     tree->total = 0;
     free(tree);
@@ -214,12 +226,20 @@ int avl_remove(AVLTree *tree, int key) {
     return 1;
 }
 
+static void inorder_recursive(AVLNode *node, void (*visit)(void *)) {
+    if (node == NULL) return;
+    
+    inorder_recursive(node->left, visit);
+    visit(node->data);
+    inorder_recursive(node->right, visit);
+}
+
 void avl_inorder(AVLTree *tree, void (*visit)(void *)) {
     if (tree == NULL || visit == NULL) return;
     inorder_recursive(tree->root, visit);
 }
 
-//IMPRIMIR
+// ========== IMPRIMIR ==========
 
 static void print_recursive(AVLNode *node, int level) {
     if (node == NULL) return;

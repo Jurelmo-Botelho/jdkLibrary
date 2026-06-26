@@ -24,4 +24,18 @@ typedef struct {
     int       next_id;  
 } LoanList;
 
-#endif 
+// ========== CRIAÇÃO E DESTRUIÇÃO ==========
+LoanList* loan_list_create(void);
+void loan_list_destroy(LoanList *list);
+
+// ========== OPERAÇÕES BÁSICAS ==========
+int loan_list_add(LoanList *list, Loan *loan);
+Loan* loan_list_find_by_id(LoanList *list, int id);
+
+// ========== FUNÇÕES PARA FICHEIROS ==========
+Loan* loan_from_string(const char *line);
+void loan_to_string(Loan *loan, char *buffer, int buffer_size);
+int loan_list_save_to_file(LoanList *list, const char *filename);
+int loan_list_load_from_file(LoanList *list, const char *filename);
+
+#endif

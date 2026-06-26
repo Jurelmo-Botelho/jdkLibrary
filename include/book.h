@@ -3,45 +3,40 @@
 
 #include "types.h"
 
-//Estrutura do livro
 typedef struct {
-    int codigo;                  
-    char titulo[MAX_TITLE];
-    char autor[MAX_AUTHOR];
-    char editora[MAX_PUBLISHER];
-    int ano;
-    char categoria[MAX_CATEGORY];
-    int quantidade_total;
-    int quantidade_disponivel;
-    int total_requisicoes;
-} Livro;
+    int code;
+    char title[MAX_TITLE];
+    char author[MAX_AUTHOR];
+    char publisher[MAX_PUBLISHER];
+    int year;
+    char category[MAX_CATEGORY];
+    int total_copies;
+    int available_copies;
+    int total_loans;
+} Book;
 
-// Todas as  Funções 
+// Criação
+Book* book_create(int code, const char *title, const char *author,
+                  const char *publisher, int year, const char *category,
+                  int total_copies);
 
-// criar livro
-Livro* criarLivro(int codigo, const char *titulo, const char *autor,
-                  const char *editora, int ano, const char *categoria,
-                  int quantidade);
+// Validação
+int book_validate(Book *book);
 
-// validar dados do livro
-int validarLivro(Livro *l);
+// Operações
+int book_is_available(Book *book);
+int book_loan(Book *book);
+int book_return(Book *book);
 
+// Atualização
+void book_update(Book *book, const char *title, const char *author,
+                 const char *publisher, int year, const char *category);
 
+// Impressão
+void book_print(Book *book);
 
-// atualizar dados do livro
-void atualizarLivro(Livro *l, const char *titulo, const char *autor,
-                    const char *editora, int ano, const char *categoria);
-
-// emprestar livro 
-int emprestarLivro(Livro *l);
-
-// devolver livro 
-int devolverLivro(Livro *l);
-
-// imprime dados do livro
-void imprimirLivro(Livro *l);
-
-// busca do livro
-int buscarLivro(Livro *l, int codigo, const char *titulo);
+// Funções para ficheiros
+Book* book_from_string(const char *line);
+void book_to_string(Book *book, char *buffer, int buffer_size);
 
 #endif

@@ -1,0 +1,10 @@
+1000, O Homem que Calculava, Malba Tahan, Record,2014, Matemática,10,0,0
+1010, De Zero a Um, Peter Thiel, Objetiva,2014, Empreendedorismo,10,0,0
+1020, Algoritmo Mestre, Pedro Domingos, Novatec,2017, Tecnologia,10,0,0
+1030, Código Limpo, Robert C. Martin, Alta Books,2009, Informática,10,0,0
+1040, A República, Platão, Edipro,2019, Política,10,0,0
+1050, Uma Breve História do Tempo, Stephen Hawking, Intrínseca,2015, Tecnologia,10,0,0
+1060, A Startup Enxuta, Eric Ries, Sextante,2012, Empreendedorismo,10,0,0
+1070, Arquitetura Limpa, Robert C. Martin, Alta Books,2018, Informática,10,0,0
+1080, Como as Democracias Morrem, Steven Levitsky & Daniel Ziblatt, Zahar,2018, Política,10,0,0
+1090, Isto é Matemática!, Rogério Martins, Tinta da China,2014, Matemática,10,0,0

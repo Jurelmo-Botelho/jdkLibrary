@@ -3,172 +3,132 @@
 #include <string.h>
 #include "book.h"
 
-// criar livro 
-Livro* criarLivro(int codigo, const char *titulo, const char *autor,
-                  const char *editora, int ano, const char *categoria,
-                  int quantidade)
+// Cria um novo livro
+Book* book_create(int code, const char *title, const char *author,
+                  const char *publisher, int year, const char *category,
+                  int total_copies)
 {
-    Livro *l = (Livro*) malloc(sizeof(Livro));
+    Book *book = (Book*)malloc(sizeof(Book));
+    if (book == NULL) return NULL;
 
-    if (l == NULL)
-        return NULL;
+    book->code = code;
+    strcpy(book->title, title);
+    strcpy(book->author, author);
+    strcpy(book->publisher, publisher);
+    book->year = year;
+    strcpy(book->category, category);
+    book->total_copies = total_copies;
+    book->available_copies = total_copies;
+    book->total_loans = 0;
 
-    l->codigo = codigo;
-
-    strcpy(l->titulo, titulo);
-    strcpy(l->autor, autor);
-    strcpy(l->editora, editora);
-    strcpy(l->categoria, categoria);
-    l->ano = ano;
-    l->quantidade_total = quantidade;
-    l->quantidade_disponivel = quantidade;
-    l->total_requisicoes = 0;
-
-    return l;
+    return book;
 }
 
-// validar livro 
-int validarLivro(Livro *l)
+// Valida os dados do livro
+int book_validate(Book *book)
 {
-    if (l == NULL)
-        return 0;
-
-    if (l->codigo <= 0)
-        return 0;
-
-    if (strlen(l->titulo) == 0)
-        return 0;
-
-    if (strlen(l->autor) == 0)
-        return 0;
-
-    if (strlen(l->editora) == 0)
-        return 0;
-
-    if (l->ano < 1500 || l->ano > 2100)
-        return 0;
-
-    if (l->quantidade_total < 0)
-        return 0;
-
-    if (l->quantidade_disponivel < 0)
-        return 0;
-
-    if (l->quantidade_disponivel > l->quantidade_total)
-        return 0;
+    if (book == NULL) return 0;
+    if (book->code <= 0) return 0;
+    if (strlen(book->title) == 0) return 0;
+    if (strlen(book->author) == 0) return 0;
+    if (strlen(book->publisher) == 0) return 0;
+    if (book->year < 1500 || book->year > 2100) return 0;
+    if (book->total_copies < 0) return 0;
+    if (book->available_copies < 0) return 0;
+    if (book->available_copies > book->total_copies) return 0;
 
     return 1;
 }
 
-// erificar disponibilidade 
-int verificarDisponibilidade(Livro *l)
+// Verifica se o livro está disponível
+int book_is_available(Book *book)
 {
-    if (l == NULL) {
-        printf("Livro invalido!\n");
-        return 0;
-    }
-
-    if (l->quantidade_disponivel > 0) {
-        printf("Livro DISPONIVEL\n");
-        return 1;
-    } else {
-        printf("Livro INDISPONIVEL\n");
-        return 0;
-    }
+    if (book == NULL) return 0;
+    return book->available_copies > 0;
 }
 
-// atualizar livro 
-void atualizarLivro(Livro *l, const char *titulo, const char *autor,
-                    const char *editora, int ano, const char *categoria)
+// Empresta um livro
+int book_loan(Book *book)
 {
-    if (l == NULL)
-        return;
+    if (book == NULL) return 0;
+    if (book->available_copies <= 0) return 0;
 
-    if (strlen(titulo) > 0)
-        strcpy(l->titulo, titulo);
-
-    if (strlen(autor) > 0)
-        strcpy(l->autor, autor);
-
-    if (strlen(editora) > 0)
-        strcpy(l->editora, editora);
-
-    if (ano >= 1500 && ano <= 2100)
-        l->ano = ano;
-
-    if (strlen(categoria) > 0)
-        strcpy(l->categoria, categoria);
-}
-
-//emprestar livro 
-int emprestarLivro(Livro *l)
-{
-    if (l == NULL)
-        return 0;
-
-    if (l->quantidade_disponivel <= 0)
-        return 0;
-
-    l->quantidade_disponivel--;
-    l->total_requisicoes++;
-
+    book->available_copies--;
+    book->total_loans++;
     return 1;
 }
 
-//devolver livro 
-int devolverLivro(Livro *l)
+// Devolve um livro
+int book_return(Book *book)
 {
-    if (l == NULL)
-        return 0;
+    if (book == NULL) return 0;
+    if (book->available_copies >= book->total_copies) return 0;
 
-    if (l->quantidade_disponivel >= l->quantidade_total)
-        return 0;
-
-    l->quantidade_disponivel++;
-
+    book->available_copies++;
     return 1;
 }
 
-//imprimir livro 
-void imprimirLivro(Livro *l)
+// Atualiza dados do livro
+void book_update(Book *book, const char *title, const char *author,
+                 const char *publisher, int year, const char *category)
 {
-    if (l == NULL)
-        return;
+    if (book == NULL) return;
 
-    printf("\n_______ LIVRO ________\n");
-    printf("Codigo: %d\n", l->codigo);
-    printf("Titulo: %s\n", l->titulo);
-    printf("Autor: %s\n", l->autor);
-    printf("Editora: %s\n", l->editora);
-    printf("Ano: %d\n", l->ano);
-    printf("Categoria: %s\n", l->categoria);
-    printf("Disponiveis: %d/%d\n",
-           l->quantidade_disponivel,
-           l->quantidade_total);
-    printf("Total requisicoes: %d\n", l->total_requisicoes);
+    if (strlen(title) > 0) strcpy(book->title, title);
+    if (strlen(author) > 0) strcpy(book->author, author);
+    if (strlen(publisher) > 0) strcpy(book->publisher, publisher);
+    if (year >= 1500 && year <= 2100) book->year = year;
+    if (strlen(category) > 0) strcpy(book->category, category);
 }
 
-// buscar livro usando o codigo ou Título 
-int buscarLivro(Livro *l, int codigo, const char *titulo)
+// Imprime livro
+void book_print(Book *book)
 {
-    if (l == NULL)
-        return 0;
+    if (book == NULL) return;
 
-    // busca por código
-    if (codigo > 0 && l->codigo == codigo) {
-        printf("\n===== LIVRO ENCONTRADO (POR ID) =====\n");
-        imprimirLivro(l);
-        return 1;
-    }
+    printf("\n========== BOOK ==========\n");
+    printf("Code: %d\n", book->code);
+    printf("Title: %s\n", book->title);
+    printf("Author: %s\n", book->author);
+    printf("Publisher: %s\n", book->publisher);
+    printf("Year: %d\n", book->year);
+    printf("Category: %s\n", book->category);
+    printf("Available: %d/%d\n", book->available_copies, book->total_copies);
+    printf("Total loans: %d\n", book->total_loans);
+}
 
-    // buscar com o titulo
-    if (titulo != NULL && strlen(titulo) > 0) {
-        if (strstr(l->titulo, titulo) != NULL) {
-            printf("\n===== LIVRO ENCONTRADO (POR TITULO) =====\n");
-            imprimirLivro(l);
-            return 1;
-        }
-    }
+// Cria livro a partir de uma linha do ficheiro
+Book* book_from_string(const char *line)
+{
+    if (line == NULL) return NULL;
 
-    return 0;
+    int code, year, total_copies, available_copies, total_loans;
+    char title[MAX_TITLE], author[MAX_AUTHOR], publisher[MAX_PUBLISHER];
+    char category[MAX_CATEGORY];
+
+    int result = sscanf(line, "%d,%[^,],%[^,],%[^,],%d,%[^,],%d,%d,%d",
+                        &code, title, author, publisher, &year, category,
+                        &total_copies, &available_copies, &total_loans);
+
+    if (result != 9) return NULL;
+
+    Book *book = book_create(code, title, author, publisher, year, category, total_copies);
+    if (book == NULL) return NULL;
+
+    book->available_copies = available_copies;
+    book->total_loans = total_loans;
+
+    return book;
+}
+
+// Converte livro para string (para guardar no ficheiro)
+void book_to_string(Book *book, char *buffer, int buffer_size)
+{
+    if (book == NULL || buffer == NULL) return;
+
+    snprintf(buffer, buffer_size,
+             "%d,%s,%s,%s,%d,%s,%d,%d,%d",
+             book->code, book->title, book->author, book->publisher,
+             book->year, book->category, book->total_copies,
+             book->available_copies, book->total_loans);
 }

@@ -13,7 +13,7 @@
 
 // Papel no sistema
 typedef enum {
-    ROLE_ADMIN     = 0,
+    ROLE_ADMIN     = 1,
     ROLE_STUDENT   = 2
 } Role;
 
