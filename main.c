@@ -251,7 +251,7 @@ void book_menu(void)
         printf("\n4 - Remover livro");
         printf("\n0 - Voltar\n");
 
-        op = ui_get_int("");
+        op = ui_get_int("Opcao: ");
 
         if(op==1)
         {
@@ -305,29 +305,108 @@ void user_menu(void)
 {
     int op;
 
-    do{
-        printf("\n1 - Listar");
-        printf("\n2 - Remover");
-        printf("\n0 - Voltar\n");
+    do {
+        printf("\n===== GESTAO DE UTILIZADORES =====\n");
+        printf("1 - Listar utilizadores\n");
+        printf("2 - Criar utilizador\n");
+        printf("3 - Remover utilizador\n");
+        printf("4 - Atualizar username\n");
+        printf("5 - Atualizar password\n");
+        printf("0 - Voltar\n");
+        printf("Opcao: ");
 
         op = ui_get_int("");
 
-        if(op==1)
+        if (op == 1)
         {
             user_list_all(user_tree);
+            ui_wait_enter();
+        }
+
+        else if (op == 2)
+        {
+            char username[MAX_USERNAME];
+            char name[MAX_NAME];
+            char phone[MAX_PHONE];
+            char password[100];
+
+            ui_get_string("Username: ", username, MAX_USERNAME);
+
+            normalize_username(username);
+
+            if (user_username_exists(user_tree, username))
+            {
+                ui_show_error("Username ja existe!");
+                ui_wait_enter();
+                continue;
+            }
+
+            ui_get_string("Nome: ", name, MAX_NAME);
+            ui_get_string("Telefone: ", phone, MAX_PHONE);
+            ui_get_string("Password: ", password, 100);
+
+            User *user = user_create(
+                0,
+                username,
+                name,
+                phone,
+                ROLE_STUDENT,
+                password
+            );
+
+            if (user && user_insert(user_tree, user))
+                ui_show_success("Utilizador criado!");
+            else
+                ui_show_error("Erro ao criar utilizador!");
 
             ui_wait_enter();
         }
 
-        else if(op==2)
+        else if (op == 3)
         {
             int id = ui_get_int("ID: ");
 
-            user_delete(user_tree, id);
+            if (user_delete(user_tree, id))
+                ui_show_success("Utilizador removido!");
+            else
+                ui_show_error("Utilizador nao encontrado!");
+
+            ui_wait_enter();
         }
 
-    }while(op!=0);
+        else if (op == 4)
+        {
+            int id = ui_get_int("ID: ");
 
+            char new_username[MAX_USERNAME];
+            ui_get_string("Novo username: ", new_username, MAX_USERNAME);
+
+            normalize_username(new_username);
+
+            if (user_update_username(user_tree, id, new_username))
+                ui_show_success("Username atualizado!");
+            else
+                ui_show_error("Erro ao atualizar username!");
+
+            ui_wait_enter();
+        }
+
+        else if (op == 5)
+        {
+            int id = ui_get_int("ID: ");
+
+            char pass[100];
+            ui_get_string("Nova password: ", pass, 100);
+
+            if (user_update_password(user_tree, id, pass))
+                ui_show_success("Password atualizada!");
+            else
+                ui_show_error("Erro ao atualizar password!");
+
+            ui_wait_enter();
+        }
+
+    } while (op != 0);
 }
 
 // MENU ESTUDANTE

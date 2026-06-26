@@ -8,4 +8,3 @@
 1070, Arquitetura Limpa, Robert C. Martin, Alta Books,2018, Informática,10,0,0
 1080, Como as Democracias Morrem, Steven Levitsky & Daniel Ziblatt, Zahar,2018, Política,10,0,0
 1090, Isto é Matemática!, Rogério Martins, Tinta da China,2014, Matemática,10,0,0
-2005,Daniel,,,2025,,1,1,0
