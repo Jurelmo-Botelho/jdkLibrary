@@ -1,0 +1,24 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compilar biblioteca",
+            "type": "shell",
+            "command": "gcc",
+            "args": [
+                "main.c",
+                "src/*.c",
+                "-Iinclude",
+                "-o",
+                "biblioteca"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}
