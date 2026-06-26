@@ -3,7 +3,22 @@
 #include <string.h>
 
 #include "auth.h"
+#include "avl.h"
 
+
+static const char *search_username;
+static User *found_user;
+
+
+void search_username_callback(void *data)
+{
+    User *u = (User*)data;
+
+    if(strcmp(u->username, search_username) == 0)
+    {
+        found_user = u;
+    }
+}
 
 unsigned long auth_hash_password(const char *password)
 {
@@ -24,8 +39,23 @@ void auth_hash_to_string(unsigned long hash, char *buf)
     snprintf(buf, MAX_HASH_STRING, "%lu", hash);
 }
 
+User* user_find_by_username(AVLTree *tree, const char *username)
+{
+    if(tree == NULL || username == NULL)
+        return NULL;
 
-Session auth_login(AVLTree *user_tree, int id, const char *password)
+
+    search_username = username;
+    found_user = NULL;
+
+
+    avl_inorder(tree, search_username_callback);
+
+
+    return found_user;
+}
+
+Session auth_login(AVLTree *user_tree, const char *username, const char *password)
 {
     Session session;
 
@@ -33,7 +63,7 @@ Session auth_login(AVLTree *user_tree, int id, const char *password)
     session.user = NULL;
 
 
-    User *user = (User *) avl_search(user_tree, id);
+    User *user = user_find_by_username(user_tree, username);
 
 
     if (user == NULL)

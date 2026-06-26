@@ -10,6 +10,26 @@ int validate_user_id(int id)
     return id > 0;
 }
 
+int validate_username(const char *username)
+{
+    if(username == NULL)
+        return 0;
+
+
+    if(strlen(username)<3)
+        return 0;
+
+
+    for(int i=0; username[i]!='\0'; i++)
+    {
+        if(!isalnum(username[i]))
+            return 0;
+    }
+
+
+    return 1;
+}
+
 int validate_name(const char *name)
 {
     if (name == NULL)

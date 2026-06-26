@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #define MAX_NAME          100
+#define MAX_USERNAME      50
 #define MAX_TITLE         150
 #define MAX_AUTHOR        100
 #define MAX_PUBLISHER     100
@@ -30,5 +31,11 @@ typedef struct {
     int month;
     int year;
 } Date;
+
+//Procura de Usernames
+typedef struct {
+    const char *username;
+    int found;
+} UsernameSearch;
 
 #endif 

@@ -60,9 +60,14 @@ void init_system(void)
     // Carrega utilizadores do ficheiro
     int user_count = files_load_users(user_tree, "data/users.txt");
 
-    User *admin = user_create_default_admin();
-    if (admin != NULL) {
-        user_insert(user_tree, admin);
+    User *admin = user_find_by_username(user_tree, "admin");
+
+    if(admin == NULL){
+        admin = user_create_default_admin();
+
+        if(admin != NULL){
+            user_insert(user_tree, admin);
+        }
     }
    
     printf("Carregados %d utilizadores do ficheiro\n", user_count);
@@ -136,16 +141,21 @@ void handle_login(void)
 {
     ui_show_login_header();
 
-    int id = ui_get_login_id();
+    char username[MAX_USERNAME];
+
+    ui_get_string("Username: ", username, MAX_USERNAME);
+
     char *password = ui_get_login_password();
 
-    current_session = auth_login(user_tree, id, password);
+    current_session = auth_login(user_tree, username, password);
 
-    if (current_session.authenticated) {
+    if (current_session.authenticated){
+
         ui_show_login_success(current_session.user->name);
+
         ui_wait_enter();
 
-        if (current_session.user->role == ROLE_ADMIN) {
+        if(current_session.user->role == ROLE_ADMIN){
             handle_admin_menu();
         } else {
             handle_student_menu();
@@ -166,16 +176,30 @@ void handle_create_account(void)
 
     int id = 0;
     
+    char username[MAX_USERNAME];
+    ui_get_string("Username: ", username, MAX_USERNAME);
+
+    if (user_username_exists(user_tree, username))
+    {
+        ui_show_error("Username já existe!");
+        ui_wait_enter();
+        return;
+    }
+
+    normalize_username(username);
+    printf("\nUsername definido como: %s\n", username);
+    
     char name[MAX_NAME];
     ui_get_string("Nome: ", name, MAX_NAME);
-    
+
     char phone[MAX_PHONE];
     ui_get_string("Telefone: ", phone, MAX_PHONE);
-    
+
     char password[100];
     ui_get_string("Senha: ", password, sizeof(password));
 
-    User *user = user_create(id, name, phone, ROLE_STUDENT, password);
+    User *user = user_create(0, username, name, phone, ROLE_STUDENT, password);
+
     if (user == NULL) {
         ui_show_error("Erro ao criar utilizador!");
         ui_wait_enter();
@@ -200,7 +224,8 @@ void handle_admin_menu(void)
 
     do {
         ui_clear_screen();
-        printf("\n=== ADMIN: %s ===\n", current_session.user->name);
+        printf("\n=== ADMIN: %s ===\n", current_session.user->name,
+current_session.user->username);
         ui_show_admin_menu();
         option = ui_get_int("");
 
@@ -235,7 +260,8 @@ void handle_student_menu(void)
 
     do {
         ui_clear_screen();
-        printf("\n=== ESTUDANTE: %s ===\n", current_session.user->name);
+        printf("\n=== ESTUDANTE: %s ===\n", current_session.user->name,
+current_session.user->username);
         ui_show_student_menu();
         option = ui_get_int("");
 

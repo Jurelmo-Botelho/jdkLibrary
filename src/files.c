@@ -22,8 +22,8 @@ static void save_user_callback(void *data)
     if (data == NULL) return;
     
     User *user = (User*)data;
-    printf("%d,%s,%s,%d,%s,%d\n", 
-           user->id, user->name, user->phone, 
+    printf("%d,%s,%s,%s,%d,%s,%d\n", 
+           user->id, user->username, user->name, user->phone, 
            user->role, user->password_hash, user->active_loans);
 }
 
@@ -82,40 +82,51 @@ int files_load_users(AVLTree *user_tree, const char *filename)
         line[strcspn(line, "\n")] = '\0';
 
         int id, role_int, active_loans;
-        char name[MAX_NAME], phone[MAX_PHONE], password_hash[MAX_HASH_STRING];
+        char username[MAX_USERNAME], name[MAX_NAME], phone[MAX_PHONE], password_hash[MAX_HASH_STRING];
 
-        int result = sscanf(line, "%d,%[^,],%[^,],%d,%[^,],%d",
-                            &id, name, phone, &role_int, password_hash, &active_loans);
+        int result = sscanf(line, "%d,%[^,],%[^,],%[^,],%d,%[^,],%d",
+                            &id, username, name, phone, &role_int, password_hash, &active_loans);
 
-        if (result != 6) {
+        if (result != 7) {
             printf("Erro: Linha inválida: %s\n", line);
             continue;
         }
 
         Role role = (Role)role_int;
 
-        User *user = user_create_with_hash(id, name, phone, role, password_hash);
-        if (user == NULL) {
+        User *user = user_create_with_hash(id, username, name, phone, role, password_hash);
+        if(user == NULL)
+        {
             printf("Erro: Não foi possível criar user %d\n", id);
             continue;
         }
 
-        user->active_loans = active_loans;
 
-        if (avl_insert(user_tree, user->id, user)) {
-            count++;
-        } else {
-            printf("Erro: Não foi possível inserir user %d\n", id);
+        if(user_find_by_username(user_tree, username) != NULL)
+        {
+            printf("Erro: Username duplicado\n");
             user_destroy(user);
+            continue;
         }
 
-         if (id > max_id) {
+
+        user->active_loans = active_loans;
+
+
+        if(avl_insert(user_tree, user->id, user))
+        {
+            count++;
+        } else {
+            user_destroy(user);
+            printf("Erro: Não foi possível inserir user %d\n", id);
+        }
+
+        if (id > max_id) {
             max_id = id;  
         }
 
     }
 
-    
     fclose(file);
 
     user_update_next_id(max_id); 
@@ -141,8 +152,8 @@ static void save_user_to_file(void *data, FILE *file)
     if (data == NULL || file == NULL) return;
     
     User *user = (User*)data;
-    fprintf(file, "%d,%s,%s,%d,%s,%d\n", 
-            user->id, user->name, user->phone, 
+    fprintf(file, "%d,%s,%s,%s,%d,%s,%d\n", 
+            user->id, user->username, user->name, user->phone, 
             user->role, user->password_hash, user->active_loans);
 }
 

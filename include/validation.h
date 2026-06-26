@@ -5,6 +5,8 @@
 
 int validate_user_number(int id);
 
+int validate_username(const char *username);
+
 int validate_name(const char *name);
 
 int validate_phone(const char *phone);

@@ -14,7 +14,7 @@ unsigned long auth_hash_password(const char *password);
 void auth_hash_to_string(unsigned long hash, char *buf);
 
 // Login/Logout
-Session auth_login(AVLTree *user_tree, int id, const char *password);
+Session auth_login(AVLTree *user_tree, const char *username, const char *password);
 void auth_logout(Session *session);
 
 // Permissões (role <= minimum_role significa que tem permissão)
