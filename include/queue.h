@@ -19,7 +19,7 @@ typedef struct {
     int tamanho;
 } FilaReservas;
 
-//  FUNÇÕES 
+
 
 FilaReservas* criarFila(int codigo_livro);
 

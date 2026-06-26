@@ -3,10 +3,8 @@
 #include <string.h>
 #include "loan.h"
 
-// ============================================================
-//  CRIAÇÃO E DESTRUIÇÃO
-// ============================================================
 
+//  CRIAÇÃO E DESTRUIÇÃO
 LoanList* loan_list_create(void)
 {
     LoanList *list = (LoanList*)malloc(sizeof(LoanList));
@@ -33,10 +31,8 @@ void loan_list_destroy(LoanList *list)
     free(list);
 }
 
-// ============================================================
-//  OPERAÇÕES BÁSICAS
-// ============================================================
 
+//  OPERAÇÕES BÁSICAS
 int loan_list_add(LoanList *list, Loan *loan)
 {
     if (list == NULL || loan == NULL) return 0;
@@ -78,9 +74,8 @@ Loan* loan_list_find_by_id(LoanList *list, int id)
     return NULL;
 }
 
-// ============================================================
+
 //  FUNÇÕES PARA FICHEIROS
-// ============================================================
 
 Loan* loan_from_string(const char *line)
 {

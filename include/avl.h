@@ -24,7 +24,7 @@ int  avl_remove(AVLTree *tree, int key);
 
 void avl_inorder(AVLTree *tree, void (*visit)(void *data));
 
-// ========== DEBUG ==========
+
 void avl_print(AVLTree *tree);
 
 #endif

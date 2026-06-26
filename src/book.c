@@ -3,7 +3,6 @@
 #include <string.h>
 #include "book.h"
 
-// Cria um novo livro
 Book* book_create(int code, const char *title, const char *author,
                   const char *publisher, int year, const char *category,
                   int total_copies)
@@ -40,14 +39,14 @@ int book_validate(Book *book)
     return 1;
 }
 
-// Verifica se o livro está disponível
+
 int book_is_available(Book *book)
 {
     if (book == NULL) return 0;
     return book->available_copies > 0;
 }
 
-// Empresta um livro
+
 int book_loan(Book *book)
 {
     if (book == NULL) return 0;

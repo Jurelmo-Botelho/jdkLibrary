@@ -13,7 +13,6 @@ void ui_clear_screen(void)
     #endif
 }
 
-// Mostra header do login
 void ui_show_login_header(void)
 {
     ui_clear_screen();
@@ -97,7 +96,7 @@ char* ui_get_string(const char *prompt, char *buffer, int size)
     return buffer;
 }
 
-// Menus existentes
+
 void ui_show_main_menu(void)
 {
     printf("\n=====================================\n");
@@ -124,7 +123,7 @@ void ui_show_admin_menu(void)
 void ui_show_student_menu(void)
 {
     printf("\n=====================================\n");
-    printf(" MENU ESTUDANTE\n");
+    printf(" MENU USUÁRIO\n");
     printf("=====================================\n");
     printf("1. Procurar Livro\n");
     printf("2. Requisitar Livro\n");

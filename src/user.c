@@ -54,7 +54,7 @@ void normalize_username(char *username)
 {
     if (username == NULL) return;
 
-    //remover espaços início/fim primeiro (trim)
+    
     char *start = username;
     while (isspace((unsigned char)*start)) start++;
 
@@ -66,9 +66,9 @@ void normalize_username(char *username)
     if (start != username)
         memmove(username, start, strlen(start) + 1);
 
-    //remover espaços do meio + lowercase
-    int i = 0;  // leitura
-    int j = 0;  // escrita
+    
+    int i = 0;  
+    int j = 0;  
 
     while (username[i] != '\0')
     {
@@ -171,11 +171,11 @@ int user_update_username(AVLTree *tree, int id, const char *new_username)
     User *user = user_find(tree, id);
     if (user == NULL) return 0;
 
-    // se for igual ao atual, aceita
+   
     if (strcmp(user->username, temp) == 0)
         return 1;
 
-    // verificar duplicação
+  
     if (user_username_exists(tree, temp))
         return 0;
 

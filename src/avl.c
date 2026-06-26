@@ -3,20 +3,20 @@
 #include "avl.h"
 #include "book.h"
 
-static int max(int a, int b) {
+int max(int a, int b) {
     return (a > b) ? a : b;
 }
 
-static int height(AVLNode *node) {
+int height(AVLNode *node) {
     return (node == NULL) ? -1 : node->height;
 }
 
-static int balance_factor(AVLNode *node) {
+int balance_factor(AVLNode *node) {
     if (node == NULL) return 0;
     return height(node->left) - height(node->right);
 }
 
-static AVLNode *create_node(int key, void *data) {
+AVLNode *create_node(int key, void *data) {
     AVLNode *node = (AVLNode*)malloc(sizeof(AVLNode));
     if (node == NULL) {
         printf("Erro: Falha na alocação\n");
@@ -32,7 +32,7 @@ static AVLNode *create_node(int key, void *data) {
 
 //Rotações
 
-static AVLNode *rotate_left(AVLNode *r) {
+AVLNode *rotate_left(AVLNode *r) {
     AVLNode *y = r->right;
     AVLNode *b = y->left;
     
@@ -45,7 +45,7 @@ static AVLNode *rotate_left(AVLNode *r) {
     return y;
 }
 
-static AVLNode *rotate_right(AVLNode *r) {
+AVLNode *rotate_right(AVLNode *r) {
     AVLNode *y = r->left;
     AVLNode *b = y->right;
     
@@ -58,18 +58,18 @@ static AVLNode *rotate_right(AVLNode *r) {
     return y;
 }
 
-static AVLNode *rotate_left_right(AVLNode *r) {
+AVLNode *rotate_left_right(AVLNode *r) {
     r->left = rotate_left(r->left);
     return rotate_right(r);
 }
 
-static AVLNode *rotate_right_left(AVLNode *r) {
+AVLNode *rotate_right_left(AVLNode *r) {
     r->right = rotate_right(r->right);
     return rotate_left(r);
 }
 
 //Balancear
-static AVLNode *balance(AVLNode *node) {
+AVLNode *balance(AVLNode *node) {
     if (node == NULL) return NULL;
     
     int fb = balance_factor(node);
@@ -92,7 +92,7 @@ static AVLNode *balance(AVLNode *node) {
 }
 
 //Inserção
-static AVLNode *insert_recursive(AVLNode *node, int key, void *data) {
+AVLNode *insert_recursive(AVLNode *node, int key, void *data) {
     if (node == NULL)
         return create_node(key, data);
     
@@ -110,7 +110,7 @@ static AVLNode *insert_recursive(AVLNode *node, int key, void *data) {
 }
 
 //Busca 
-static void *search_recursive(AVLNode *node, int key) {
+void *search_recursive(AVLNode *node, int key) {
     if (node == NULL) return NULL;
     
     if (key == node->key)
@@ -122,13 +122,13 @@ static void *search_recursive(AVLNode *node, int key) {
 }
 
 //Remoção
-static AVLNode *find_min(AVLNode *node) {
+AVLNode *find_min(AVLNode *node) {
     if (node == NULL) return NULL;
     if (node->left == NULL) return node;
     return find_min(node->left);
 }
 
-static AVLNode *remove_recursive(AVLNode *node, int key) {
+AVLNode *remove_recursive(AVLNode *node, int key) {
     if (node == NULL) return NULL;
     
     if (key < node->key) {
@@ -177,7 +177,7 @@ AVLTree *avl_create(void) {
     return tree;
 }
 
-static void destroy_recursive(AVLNode *node) {
+void destroy_recursive(AVLNode *node) {
     if (node == NULL) return;
     
     destroy_recursive(node->left);
@@ -226,7 +226,7 @@ int avl_remove(AVLTree *tree, int key) {
     return 1;
 }
 
-static void inorder_recursive(AVLNode *node, void (*visit)(void *)) {
+void inorder_recursive(AVLNode *node, void (*visit)(void *)) {
     if (node == NULL) return;
     
     inorder_recursive(node->left, visit);
@@ -241,7 +241,7 @@ void avl_inorder(AVLTree *tree, void (*visit)(void *)) {
 
 // ========== IMPRIMIR ==========
 
-static void print_recursive(AVLNode *node, int level) {
+void print_recursive(AVLNode *node, int level) {
     if (node == NULL) return;
     
     print_recursive(node->right, level + 1);
