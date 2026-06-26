@@ -131,9 +131,13 @@ int user_delete(AVLTree *tree, int id){
         return 0;
     }
 
+    if (!avl_remove(tree, id)){
+        return 0;
+    }
+
     user_destroy(user);
 
-    return avl_remove(tree, id);
+    return 1;
 }
 
 
