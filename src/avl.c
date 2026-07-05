@@ -1,264 +1,230 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "avl.h"
-#include "book.h"
 
-int max(int a, int b) {
+#include "avl.h"
+
+int avl_height(AVLNode *node)
+{
+    if (node == NULL)
+        return 0;
+    return node->height;
+}
+
+int avl_max(int a, int b)
+{
     return (a > b) ? a : b;
 }
 
-int height(AVLNode *node) {
-    return (node == NULL) ? -1 : node->height;
+int avl_balance_factor(AVLNode *node)
+{
+    if (node == NULL)
+        return 0;
+    return avl_height(node->left) - avl_height(node->right);
 }
 
-int balance_factor(AVLNode *node) {
-    if (node == NULL) return 0;
-    return height(node->left) - height(node->right);
-}
 
-AVLNode *create_node(int key, void *data) {
-    AVLNode *node = (AVLNode*)malloc(sizeof(AVLNode));
-    if (node == NULL) {
-        printf("Erro: Falha na alocação\n");
+AVLNode *avl_create_node(int key, void *data)
+{
+    AVLNode *node = (AVLNode *)malloc(sizeof(AVLNode));
+
+    if (node == NULL)
+    {
+        printf("Erro: falha na alocação de memória.\n");
         return NULL;
     }
+
     node->key = key;
     node->data = data;
-    node->height = 0;
+    node->height = 1;
     node->left = NULL;
     node->right = NULL;
+
     return node;
 }
 
-//Rotações
 
-AVLNode *rotate_left(AVLNode *r) {
-    AVLNode *y = r->right;
-    AVLNode *b = y->left;
-    
-    y->left = r;
-    r->right = b;
-    
-    r->height = max(height(r->left), height(r->right)) + 1;
-    y->height = max(height(y->left), height(y->right)) + 1;
-    
+AVLNode *avl_rotate_right(AVLNode *y)
+{
+    AVLNode *x = y->left;
+    AVLNode *T2 = x->right;
+
+    x->right = y;
+    y->left = T2;
+
+    y->height = 1 + avl_max(avl_height(y->left), avl_height(y->right));
+    x->height = 1 + avl_max(avl_height(x->left), avl_height(x->right));
+
+    return x;
+}
+
+AVLNode *avl_rotate_left(AVLNode *x)
+{
+    AVLNode *y = x->right;
+    AVLNode *T2 = y->left;
+
+    y->left = x;
+    x->right = T2;
+
+    x->height = 1 + avl_max(avl_height(x->left), avl_height(x->right));
+    y->height = 1 + avl_max(avl_height(y->left), avl_height(y->right));
+
     return y;
 }
 
-AVLNode *rotate_right(AVLNode *r) {
-    AVLNode *y = r->left;
-    AVLNode *b = y->right;
-    
-    y->right = r;
-    r->left = b;
-    
-    r->height = max(height(r->left), height(r->right)) + 1;
-    y->height = max(height(y->left), height(y->right)) + 1;
-    
-    return y;
-}
 
-AVLNode *rotate_left_right(AVLNode *r) {
-    r->left = rotate_left(r->left);
-    return rotate_right(r);
-}
-
-AVLNode *rotate_right_left(AVLNode *r) {
-    r->right = rotate_right(r->right);
-    return rotate_left(r);
-}
-
-//Balancear
-AVLNode *balance(AVLNode *node) {
-    if (node == NULL) return NULL;
-    
-    int fb = balance_factor(node);
-    
-    if (fb > 1) {
-        if (balance_factor(node->left) >= 0)
-            return rotate_right(node);          
-        else
-            return rotate_left_right(node);     
-    }
-    
-    if (fb < -1) {
-        if (balance_factor(node->right) <= 0)
-            return rotate_left(node);           
-        else
-            return rotate_right_left(node);    
-    }
-    
-    return node;
-}
-
-//Inserção
-AVLNode *insert_recursive(AVLNode *node, int key, void *data) {
+AVLNode *avl_insert(AVLNode *node, int key, void *data)
+{
     if (node == NULL)
-        return create_node(key, data);
-    
+        return avl_create_node(key, data);
+
     if (key < node->key)
-        node->left = insert_recursive(node->left, key, data);
+        node->left = avl_insert(node->left, key, data);
     else if (key > node->key)
-        node->right = insert_recursive(node->right, key, data);
-    else {
-        printf("Erro: Chave %d já existe\n", key);
+        node->right = avl_insert(node->right, key, data);
+    else
+    {
+        printf("Erro: chave duplicada (%d).\n", key);
         return node;
     }
-    
-    node->height = max(height(node->left), height(node->right)) + 1;
-    return balance(node);
-}
 
-//Busca 
-void *search_recursive(AVLNode *node, int key) {
-    if (node == NULL) return NULL;
-    
-    if (key == node->key)
-        return node->data;
-    else if (key < node->key)
-        return search_recursive(node->left, key);
-    else
-        return search_recursive(node->right, key);
-}
+    node->height = 1 + avl_max(avl_height(node->left), avl_height(node->right));
 
-//Remoção
-AVLNode *find_min(AVLNode *node) {
-    if (node == NULL) return NULL;
-    if (node->left == NULL) return node;
-    return find_min(node->left);
-}
+    int balance = avl_balance_factor(node);
 
-AVLNode *remove_recursive(AVLNode *node, int key) {
-    if (node == NULL) return NULL;
-    
-    if (key < node->key) {
-        node->left = remove_recursive(node->left, key);
+    /* LL */
+    if (balance > 1 && key < node->left->key)
+        return avl_rotate_right(node);
+
+    /* RR */
+    if (balance < -1 && key > node->right->key)
+        return avl_rotate_left(node);
+
+    /* LR */
+    if (balance > 1 && key > node->left->key)
+    {
+        node->left = avl_rotate_left(node->left);
+        return avl_rotate_right(node);
     }
-    else if (key > node->key) {
-        node->right = remove_recursive(node->right, key);
+
+    /* RL */
+    if (balance < -1 && key < node->right->key)
+    {
+        node->right = avl_rotate_right(node->right);
+        return avl_rotate_left(node);
     }
-    else {
-        if (node->left == NULL || node->right == NULL) {
-            AVLNode *temp = node->left ? node->left : node->right;
-            
-            if (temp == NULL) {
-                free(node);
-                return NULL;
-            } else {
-                *node = *temp;
-                free(temp);
-            }
-        }
-        else {
-            AVLNode *sucessor = find_min(node->right);
-            node->key = sucessor->key;
-            node->data = sucessor->data;
-            node->right = remove_recursive(node->right, sucessor->key);
-        }
-    }
-    
-    if (node == NULL) return NULL;
-    
-    node->height = max(height(node->left), height(node->right)) + 1;
-    return balance(node);
+
+    return node;
 }
 
 
-//Funções públicas
+AVLNode *avl_min_node(AVLNode *node)
+{
+    AVLNode *current = node;
 
-AVLTree *avl_create(void) {
-    AVLTree *tree = (AVLTree*)malloc(sizeof(AVLTree));
-    if (tree == NULL) {
-        printf("Erro: Falha ao criar árvore\n");
+    while (current && current->left != NULL)
+        current = current->left;
+
+    return current;
+}
+
+
+AVLNode *avl_search(AVLNode *root, int key)
+{
+    if (root == NULL)
         return NULL;
+
+    if (key == root->key)
+        return root;
+
+    if (key < root->key)
+        return avl_search(root->left, key);
+
+    return avl_search(root->right, key);
+}
+
+
+AVLNode *avl_remove(AVLNode *root, int key)
+{
+    if (root == NULL)
+        return NULL;
+
+    if (key < root->key)
+        root->left = avl_remove(root->left, key);
+
+    else if (key > root->key)
+        root->right = avl_remove(root->right, key);
+
+    else
+    {
+        /* 0 ou 1 filho */
+        if (root->left == NULL || root->right == NULL)
+        {
+            AVLNode *temp = root->left ? root->left : root->right;
+
+            if (temp == NULL)
+            {
+                temp = root;
+                root = NULL;
+            }
+            else
+            {
+                *root = *temp;
+            }
+
+            free(temp);
+        }
+        else
+        {
+            AVLNode *temp = avl_min_node(root->right);
+
+            root->key = temp->key;
+            root->data = temp->data;
+
+            root->right = avl_remove(root->right, temp->key);
+        }
     }
-    tree->root = NULL;
-    tree->total = 0;
-    return tree;
-}
 
-void destroy_recursive(AVLNode *node) {
-    if (node == NULL) return;
-    
-    destroy_recursive(node->left);
-    destroy_recursive(node->right);
-    
-    free(node);
-}
+    if (root == NULL)
+        return NULL;
 
-void avl_destroy(AVLTree *tree, void (*free_data)(void *data)) {
-    if (tree == NULL) return;
-    
-    destroy_recursive(tree->root);
-    tree->root = NULL;
-    tree->total = 0;
-    free(tree);
-}
+    root->height = 1 + avl_max(avl_height(root->left), avl_height(root->right));
 
-int avl_insert(AVLTree *tree, int key, void *data) {
-    if (tree == NULL || data == NULL) return 0;
-    
-    if (avl_search(tree, key) != NULL) {
-        printf("Erro: Chave %d já existe\n", key);
-        return 0;
+    int balance = avl_balance_factor(root);
+
+    /* LL */
+    if (balance > 1 && avl_balance_factor(root->left) >= 0)
+        return avl_rotate_right(root);
+
+    /* LR */
+    if (balance > 1 && avl_balance_factor(root->left) < 0)
+    {
+        root->left = avl_rotate_left(root->left);
+        return avl_rotate_right(root);
     }
-    
-    tree->root = insert_recursive(tree->root, key, data);
-    tree->total++;
-    return 1;
-}
 
-void *avl_search(AVLTree *tree, int key) {
-    if (tree == NULL) return NULL;
-    return search_recursive(tree->root, key);
-}
+    /* RR */
+    if (balance < -1 && avl_balance_factor(root->right) <= 0)
+        return avl_rotate_left(root);
 
-int avl_remove(AVLTree *tree, int key) {
-    if (tree == NULL || tree->root == NULL) return 0;
-    
-    if (avl_search(tree, key) == NULL) {
-        printf("Erro: Chave %d não encontrada\n", key);
-        return 0;
+    /* RL */
+    if (balance < -1 && avl_balance_factor(root->right) > 0)
+    {
+        root->right = avl_rotate_right(root->right);
+        return avl_rotate_left(root);
     }
-    
-    tree->root = remove_recursive(tree->root, key);
-    tree->total--;
-    return 1;
+
+    return root;
 }
 
-void inorder_recursive(AVLNode *node, void (*visit)(void *)) {
-    if (node == NULL) return;
-    
-    inorder_recursive(node->left, visit);
-    visit(node->data);
-    inorder_recursive(node->right, visit);
-}
+//Libertação
 
-void avl_inorder(AVLTree *tree, void (*visit)(void *)) {
-    if (tree == NULL || visit == NULL) return;
-    inorder_recursive(tree->root, visit);
-}
-
-// ========== IMPRIMIR ==========
-
-void print_recursive(AVLNode *node, int level) {
-    if (node == NULL) return;
-    
-    print_recursive(node->right, level + 1);
-    
-    for (int i = 0; i < level; i++)
-        printf("    ");
-    printf("Key: %d (h=%d)\n", node->key, node->height);
-    
-    print_recursive(node->left, level + 1);
-}
-
-void avl_print(AVLTree *tree) {
-    if (tree == NULL) {
-        printf("Árvore vazia\n");
+void avl_destroy(AVLNode *root)
+{
+    if (root == NULL)
         return;
-    }
-    printf("\n=== ÁRVORE AVL ===\n");
-    print_recursive(tree->root, 0);
-    printf("Total: %d nós\n", tree->total);
+
+    avl_destroy(root->left);
+    avl_destroy(root->right);
+
+    free(root);
 }

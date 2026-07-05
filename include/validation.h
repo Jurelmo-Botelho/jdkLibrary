@@ -3,16 +3,21 @@
 
 #include "types.h"
 
-int validate_user_number(int id);
-
+/* User validation */
+int validate_user_id(int id);
 int validate_username(const char *username);
-
+int validate_password(const char *password);
 int validate_name(const char *name);
-
 int validate_phone(const char *phone);
 
-int validate_password(const char *password);
+/* Book validation */
+int validate_book_id(int id);
+int validate_title(const char *title);
+int validate_author(const char *author);
+int validate_category(const char *category);
+int validate_quantity(int total, int available);
 
-int validate_role(Role role);
+/* General */
+int is_positive_int(int value);
 
 #endif

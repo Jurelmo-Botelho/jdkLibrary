@@ -4,68 +4,57 @@
 #include "types.h"
 #include "avl.h"
 
-typedef struct {
+
+typedef struct User
+{
     int id;
     char username[MAX_USERNAME];
+    char password[MAX_PASSWORD];
     char name[MAX_NAME];
+    int age;
     char phone[MAX_PHONE];
+
     Role role;
-    char password_hash[MAX_HASH_STRING];
-    int active_loans;
+
+    int activeLoans;
+
 } User;
 
-//ID dinâmico
-int user_get_next_id(void);
-void user_load_next_id(void);
-void user_save_next_id(void);
-void user_update_next_id(int max_id);
 
-// Criação com senha (calcula hash)
-User* user_create(
-    int id,
-    const char *username,
-    const char *name,
-    const char *phone,
-    Role role,
-    const char *password
+void create_default_admin(AVLNode **root);
+
+User *create_user(
+    const char *username, 
+    const char *password, 
+    const char *name, 
+    int age, 
+    const char *phone, 
+    Role role
 );
 
-// Criação com hash já calculado (para carregar do ficheiro)
-User* user_create_with_hash(
+int update_user(
+    AVLNode *root,
     int id,
-    const char *username,
-    const char *name,
-    const char *phone,
-    Role role,
-    const char *password_hash
+    const char *newName,
+    int newAge,
+    const char *newPhone
 );
 
-// Destruição
-void user_destroy(User *user);
-void user_destroy_callback(void *data);
+int delete_user(AVLNode **root, int id);
 
-// CRUD
-int user_insert(AVLTree *tree, User *user);
-User* user_find(AVLTree *tree, int id);
-User* user_find_by_username(AVLTree *tree, const char *username);
-int user_update_username(AVLTree *tree, int id, const char *new_username);
-int user_update(AVLTree *tree, int id, const char *name, const char *phone);
-int user_update_password(AVLTree *tree, int id, const char *new_password);
-int user_delete(AVLTree *tree, int id);
+void print_user(void *data);
+void user_print_all(AVLNode *root);
 
-// Impressão
-void user_print(const User *user);
-void user_print_callback(void *data);
-void user_list_all(AVLTree *tree);
+void free_user(void *data);
 
-// Verificação
-int user_username_exists(AVLTree *tree, const char *username);
-int user_can_borrow(const User *user);
+AVLNode *user_insert(AVLNode *root, User *user);
 
-// Cria admin default (para quando o ficheiro está vazio)
-User* user_create_default_admin();
+AVLNode *user_remove(AVLNode *root, int id);
 
-//Normalização de username
-void normalize_username(char *username);
+User *user_find(AVLNode *root,int id);
+
+//Regras de Negócio
+
+int user_can_borrow(User *user);
 
 #endif

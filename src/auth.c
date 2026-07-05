@@ -3,116 +3,143 @@
 #include <string.h>
 
 #include "auth.h"
-#include "avl.h"
+#include "validation.h"
 
-
-static const char *search_username;
-static User *found_user;
-
-
-void search_username_callback(void *data)
+Session *create_session(void)
 {
-    User *u = (User*)data;
+    Session *session = (Session *)malloc(sizeof(Session));
 
-    if(strcmp(u->username, search_username) == 0)
+    if (session == NULL)
     {
-        found_user = u;
-    }
-}
-
-unsigned long auth_hash_password(const char *password)
-{
-    unsigned long hash = 5381;
-    int c;
-
-    while ((c = *password++))
-    {
-        hash = ((hash << 5) + hash) + c;
-    }
-
-    return hash;
-}
-
-
-void auth_hash_to_string(unsigned long hash, char *buf)
-{
-    snprintf(buf, MAX_HASH_STRING, "%lu", hash);
-}
-
-User* user_find_by_username(AVLTree *tree, const char *username)
-{
-    if(tree == NULL || username == NULL)
+        printf("Erro: falha ao criar sessão.\n");
         return NULL;
-
-
-    search_username = username;
-    found_user = NULL;
-
-
-    avl_inorder(tree, search_username_callback);
-
-
-    return found_user;
-}
-
-Session auth_login(AVLTree *user_tree, const char *username, const char *password)
-{
-    Session session;
-
-    session.authenticated = 0;
-    session.user = NULL;
-
-
-    User *user = user_find_by_username(user_tree, username);
-
-
-    if (user == NULL)
-    {
-        return session;
     }
 
-
-    unsigned long hash = auth_hash_password(password);
-
-    char hash_string[MAX_HASH_STRING];
-
-    auth_hash_to_string(hash, hash_string);
-
-
-    if (strcmp(hash_string, user->password_hash) != 0)
-    {
-        return session;
-    }
-
-
-    session.authenticated = 1;
-    session.user = user;
-
+    session->currentUser = NULL;
+    session->isLoggedIn = 0;
 
     return session;
 }
 
+void destroy_session(Session *session)
+{
+    if (session == NULL)
+        return;
 
-void auth_logout(Session *session)
+    free(session);
+}
+
+void logout(Session *session)
 {
     if (session == NULL)
     {
+        printf("Erro: sessão inválida.\n");
         return;
     }
 
+    session->currentUser = NULL;
+    session->isLoggedIn = 0;
 
-    session->authenticated = 0;
-    session->user = NULL;
+    printf("Logout efetuado com sucesso.\n");
 }
 
-
-int auth_has_permission(Session *session, Role minimum_role)
+User *find_user_by_username(AVLNode *root, const char *username)
 {
-    if (session == NULL || !session->authenticated)
+    if (root == NULL || username == NULL)
+        return NULL;
+
+    /* percurso simples in-order */
+    if (root->left != NULL)
     {
+        User *leftResult = find_user_by_username(root->left, username);
+        if (leftResult != NULL)
+            return leftResult;
+    }
+
+    User *user = (User *)root->data;
+
+    if (strcmp(user->username, username) == 0)
+        return user;
+
+    if (root->right != NULL)
+        return find_user_by_username(root->right, username);
+
+    return NULL;
+}
+
+int login(Session *session, AVLNode *userRoot, const char *username, const char *password)
+{
+    if (session == NULL)
+    {
+        printf("Erro: sessão inválida.\n");
         return 0;
     }
 
+    User *user = find_user_by_username(userRoot, username);
 
-    return session->user->role <= minimum_role;
+    if (user == NULL)
+    {
+        printf("Erro: utilizador não encontrado.\n");
+        return 0;
+    }
+
+    if (strcmp(user->password, password) != 0)
+    {
+        printf("Erro: password incorreta.\n");
+        return 0;
+    }
+
+    session->currentUser = user;
+    session->isLoggedIn = 1;
+
+    printf("Login efetuado com sucesso. Bem-vindo %s!\n", user->name);
+
+    return 1;
+}
+
+User *register_user(AVLNode **userRoot, const char *username, const char *password, const char *name, int age, const char *phone, Role role){
+
+    if (userRoot == NULL)
+    {
+        printf("Erro: árvore de utilizadores inválida.\n");
+        return NULL;
+    }
+
+    /* verificar username duplicado */
+    if (find_user_by_username(*userRoot, username) != NULL)
+    {
+        printf("Erro: username já existe.\n");
+        return NULL;
+    }
+
+    User *newUser = create_user(username, password, name, age, phone, role);
+
+    if (newUser == NULL)
+        return NULL;
+
+    *userRoot = user_insert(*userRoot, newUser);
+
+    printf("Utilizador registado com sucesso.\n");
+
+    return newUser;
+}
+
+Book *register_book(AVLNode **bookRoot, const char *title, const char *author, const char *publisher, const char *category, int year, int minAge, int qty){
+    
+    if (bookRoot == NULL)
+    {
+        printf("Erro: arvore de livros invalida.\n");
+        return NULL;
+    }
+
+    Book *book = create_book(title, author, publisher, category, year, minAge, qty);
+
+    if (book == NULL)
+        return NULL;
+
+    *bookRoot = book_insert(*bookRoot, book);
+
+    printf("Livro registado com sucesso.\n");
+
+    return book;
 }

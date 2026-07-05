@@ -1,295 +1,204 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+
 #include "user.h"
-#include "auth.h"
-#include "avl.h"
-#include "types.h"
+#include "validation.h"
 
-static const char *search_username = NULL;
-static int username_found = 0;
+int user_id_counter = 1;
 
-static int next_user_id = 2; 
-
-void user_load_next_id(void)
+void create_default_admin(AVLNode **root)
 {
-    FILE *file = fopen("data/next_id.txt", "r");
-    if (file == NULL) {
-        next_user_id = 2; 
+    if (root == NULL)
+    {
+        printf("Erro: arvore de utilizadores invalida.\n");
         return;
     }
-    
-    fscanf(file, "%d", &next_user_id);
-    fclose(file);
-}
 
+    /* verificar se já existe admin (id = 1 fixo) */
+    if (user_find(*root, 1) != NULL)
+        return;
 
-void user_save_next_id(void)
-{
-    FILE *file = fopen("data/next_id.txt", "w");
-    if (file == NULL) return;
-    
-    fprintf(file, "%d", next_user_id);
-    fclose(file);
-}
+    User *admin = create_user(
+        "admin",
+        "admin123",
+        "Administrador",
+        30,
+        "000000000",
+        ROLE_ADMIN
+    );
 
-void user_update_next_id(int max_id)
-{
-    if (max_id >= next_user_id) {
-        next_user_id = max_id + 1;
-    }
-}
-
-int user_get_next_id(void) {
-    return next_user_id++;
-}
-
-//Normalização de username
-#include <ctype.h>
-#include <string.h>
-#include <stdlib.h>
-
-void normalize_username(char *username)
-{
-    if (username == NULL) return;
-
-    
-    char *start = username;
-    while (isspace((unsigned char)*start)) start++;
-
-    char *end = start + strlen(start) - 1;
-    while (end > start && isspace((unsigned char)*end)) end--;
-
-    *(end + 1) = '\0';
-
-    if (start != username)
-        memmove(username, start, strlen(start) + 1);
-
-    
-    int i = 0;  
-    int j = 0;  
-
-    while (username[i] != '\0')
+    if (admin == NULL)
     {
-        if (!isspace((unsigned char)username[i]))
-        {
-            username[j++] = (char)tolower((unsigned char)username[i]);
-        }
-        i++;
+        printf("Erro: nao foi possivel criar admin padrao.\n");
+        return;
     }
 
-    username[j] = '\0';
+    *root = user_insert(*root, admin);
+
+    printf("Admin padrao criado com sucesso.\n");
 }
 
-User* user_create(int id, const char *username, const char *name, const char *phone, Role role, const char *password){
-    if (password == NULL) return NULL;
+User *create_user(const char *username, const char *password, const char *name, int age, const char *phone, Role role){
 
-    if (id == 0) {
-        id = user_get_next_id();
-    }
+    if (!validate_username(username))
+        return NULL;
 
-    if (id <= 0) return NULL;
+    if (!validate_password(password))
+        return NULL;
 
-    unsigned long hash = auth_hash_password(password);
-    char hash_string[MAX_HASH_STRING];
-    auth_hash_to_string(hash, hash_string);
+    if (!validate_name(name))
+        return NULL;
 
-    return user_create_with_hash(id, username, name, phone, role, hash_string);
-}
-
-// Cria utilizador com hash já calculado
-User* user_create_with_hash(int id, const char *username, const char *name, const char *phone,
-                            Role role, const char *password_hash)
-{
-    if (id <= 0 || name == NULL || phone == NULL || password_hash == NULL) {
+    if (age <= 0)
+    {
+        printf("Erro: idade inválida.\n");
         return NULL;
     }
 
-    User *user = (User*)malloc(sizeof(User));
-    if (user == NULL) return NULL;
+    if (!validate_phone(phone))
+        return NULL;
 
-    user->id = id;
-    strncpy(user->username, username, MAX_USERNAME-1);
-    user->username[MAX_USERNAME-1]='\0';
-    strncpy(user->name, name, MAX_NAME - 1);
-    user->name[MAX_NAME - 1] = '\0';
-    strncpy(user->phone, phone, MAX_PHONE - 1);
-    user->phone[MAX_PHONE - 1] = '\0';
+    User *user = (User *)malloc(sizeof(User));
+
+    if (user == NULL)
+    {
+        printf("Erro: falha na alocação de memória.\n");
+        return NULL;
+    }
+
+    user->id = user_id_counter++;
+
+    strncpy(user->username, username, MAX_USERNAME);
+    strncpy(user->password, password, MAX_PASSWORD);
+    strncpy(user->name, name, MAX_NAME);
+    user->age = age;
+    strncpy(user->phone, phone, MAX_PHONE);
+
     user->role = role;
-    strncpy(user->password_hash, password_hash, MAX_HASH_STRING - 1);
-    user->password_hash[MAX_HASH_STRING - 1] = '\0';
-    user->active_loans = 0;
+    user->activeLoans = 0;
 
     return user;
 }
 
-// Cria admin default
-User* user_create_default_admin()
-{
-    return user_create(1,"admin", "Administrador", "999999999", ROLE_ADMIN, "admin123");
+int update_user(AVLNode *root, int id, const char *newName, int newAge,const char *newPhone){
+
+    AVLNode *node = avl_search(root, id);
+
+    if (node == NULL)
+    {
+        printf("Erro: utilizador nao encontrado.\n");
+        return 0;
+    }
+
+    User *user = (User *)node->data;
+
+    if (newName != NULL)
+        strncpy(user->name, newName, MAX_NAME);
+
+    if (newAge > 0)
+        user->age = newAge;
+
+    if (newPhone != NULL)
+        strncpy(user->phone, newPhone, MAX_PHONE);
+
+    printf("Utilizador atualizado com sucesso.\n");
+    return 1;
 }
 
-// Destrói utilizador
-void user_destroy(User *user)
+int delete_user(AVLNode **root, int id)
 {
-    if (user == NULL) return;
-    free(user);
+    if (root == NULL || *root == NULL)
+    {
+        printf("Erro: arvore invalida.\n");
+        return 0;
+    }
+
+    *root = avl_remove(*root, id);
+
+    printf("Utilizador removido com sucesso.\n");
+    return 1;
 }
 
-void user_destroy_callback(void *data)
+void print_user(void *data)
 {
-    if (data == NULL) return;
+    if (data == NULL)
+    {
+        printf("Erro: utilizador inválido.\n");
+        return;
+    }
+
+    User *user = (User *)data;
+
+    printf("ID: %d | Username: %s | Nome: %s | Idade: %d | Telefone: %s | Emprestimos: %d\n",
+           user->id,
+           user->username,
+           user->name,
+           user->age,
+           user->phone,
+           user->activeLoans);
+}
+
+void user_print_all(AVLNode *root)
+{
+    if (root == NULL)
+        return;
+
+    user_print_all(root->left);
+
+    print_user(root->data);
+
+    user_print_all(root->right);
+}
+
+void free_user(void *data)
+{
+    if (data == NULL)
+        return;
+
     free(data);
 }
 
-// Insere utilizador na árvore
-int user_insert(AVLTree *tree, User *user)
+int user_can_borrow(User *user)
 {
-    if (tree == NULL || user == NULL) return 0;
-    return avl_insert(tree, user->id, user);
-}
-
-// Procura utilizador
-User* user_find(AVLTree *tree, int id)
-{
-    if (tree == NULL) return NULL;
-    return (User*)avl_search(tree, id);
-}
-
-//Atualiza Username
-int user_update_username(AVLTree *tree, int id, const char *new_username)
-{
-    if (tree == NULL || new_username == NULL) return 0;
-
-    char temp[MAX_USERNAME];
-    strncpy(temp, new_username, MAX_USERNAME);
-    temp[MAX_USERNAME - 1] = '\0';
-
-    normalize_username(temp);
-
-    User *user = user_find(tree, id);
-    if (user == NULL) return 0;
-
-   
-    if (strcmp(user->username, temp) == 0)
-        return 1;
-
-  
-    if (user_username_exists(tree, temp))
-        return 0;
-
-    strncpy(user->username, temp, MAX_USERNAME - 1);
-    user->username[MAX_USERNAME - 1] = '\0';
-
-    return 1;
-}
-
-// Atualiza utilizador
-int user_update(AVLTree *tree, int id, const char *name, const char *phone)
-{
-    User *user = user_find(tree, id);
-    if (user == NULL) return 0;
-
-    if (name != NULL && strlen(name) > 0) {
-        strncpy(user->name, name, MAX_NAME - 1);
-        user->name[MAX_NAME - 1] = '\0';
-    }
-
-    if (phone != NULL && strlen(phone) > 0) {
-        strncpy(user->phone, phone, MAX_PHONE - 1);
-        user->phone[MAX_PHONE - 1] = '\0';
-    }
-
-    return 1;
-}
-
-//Atualiza Password
-int user_update_password(AVLTree *tree, int id, const char *new_password)
-{
-    if (tree == NULL || new_password == NULL) return 0;
-
-    if (strlen(new_password) < 4)
-        return 0;
-
-    User *user = user_find(tree, id);
-    if (user == NULL) return 0;
-
-    unsigned long hash = auth_hash_password(new_password);
-
-    char hash_string[MAX_HASH_STRING];
-    auth_hash_to_string(hash, hash_string);
-
-    strncpy(user->password_hash, hash_string, MAX_HASH_STRING - 1);
-    user->password_hash[MAX_HASH_STRING - 1] = '\0';
-
-    return 1;
-}
-
-// Remove utilizador
-int user_delete(AVLTree *tree, int id)
-{
-    User *user = user_find(tree, id);
-    if (user == NULL) return 0;
-
-    if (!avl_remove(tree, id)) return 0;
-
-    user_destroy(user);
-    return 1;
-}
-
-// Imprime utilizador
-void user_print(const User *user)
-{
-    if (user == NULL) return;
-
-    printf("\n========== USER ==========\n");
-    printf("ID: %d\n", user->id);
-    printf("Username: %s\n", user->username);
-    printf("Name: %s\n", user->name);
-    printf("Phone: %s\n", user->phone);
-    printf("Role: %s\n", user->role == ROLE_ADMIN ? "Admin" : "Student");
-    printf("Active Loans: %d\n", user->active_loans);
-}
-
-void user_print_callback(void *data)
-{
-    user_print((User*)data);
-}
-
-// Lista todos os utilizadores
-void user_list_all(AVLTree *tree)
-{
-    if (tree == NULL) return;
-    printf("\n=== ALL USERS ===\n");
-    avl_inorder(tree, user_print_callback);
-}
-
-// Verifica se pode fazer empréstimo
-int user_can_borrow(const User *user)
-{
-    if (user == NULL) return 0;
-    return user->active_loans < MAX_ACTIVE_LOANS;
-}
-
-//Verificar existência de um username
-void username_search_callback(void *data)
-{
-    User *user = (User*)data;
-
-    if (search_username != NULL &&
-        strcmp(user->username, search_username) == 0)
+    if (user == NULL)
     {
-        username_found = 1;
+        printf("Erro: utilizador inválido.\n");
+        return 0;
     }
+
+    if (user->activeLoans >= MAX_ACTIVE_LOANS)
+    {
+        printf("Erro: limite de empréstimos atingido.\n");
+        return 0;
+    }
+
+    return 1;
 }
 
-int user_username_exists(AVLTree *tree, const char *username)
+AVLNode *user_insert(AVLNode *root, User *user)
 {
-    search_username = username;
-    username_found = 0;
+    if (user == NULL)
+    {
+        printf("Erro: utilizador inválido.\n");
+        return root;
+    }
 
-    avl_inorder(tree, username_search_callback);
+    root = avl_insert(root, user->id, user);
+    return root;
+}
 
-    return username_found;
+AVLNode *user_remove(AVLNode *root, int id)
+{
+    return avl_remove(root, id);
+}
+
+User *user_find(AVLNode *root, int id)
+{
+    AVLNode *node = avl_search(root, id);
+
+    if (node == NULL)
+        return NULL;
+
+    return (User *)node->data;
 }

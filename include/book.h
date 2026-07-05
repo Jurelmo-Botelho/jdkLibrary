@@ -2,41 +2,56 @@
 #define BOOK_H
 
 #include "types.h"
+#include "avl.h"
 
-typedef struct {
-    int code;
+
+typedef struct Book{
+
+    int id;
     char title[MAX_TITLE];
     char author[MAX_AUTHOR];
     char publisher[MAX_PUBLISHER];
-    int year;
     char category[MAX_CATEGORY];
-    int total_copies;
-    int available_copies;
-    int total_loans;
+    int year;
+    int minAge;
+    int totalQuantity;
+    int availableQuantity;
+    int timesBorrowed;
+
 } Book;
 
-// Criação
-Book* book_create(int code, const char *title, const char *author,
-                  const char *publisher, int year, const char *category,
-                  int total_copies);
 
-// Validação
-int book_validate(Book *book);
+Book *create_book(
+    const char *title,
+    const char *author,
+    const char *publisher,
+    const char *category,
+    int year,
+    int minAge,
+    int totalQuantity
+);
 
-// Operações
-int book_is_available(Book *book);
-int book_loan(Book *book);
-int book_return(Book *book);
+int update_book(
+    AVLNode *root,
+    int id,
+    const char *newTitle,
+    const char *newAuthor,
+    const char *newCategory,
+    int newMinAge
+);
 
-// Atualização
-void book_update(Book *book, const char *title, const char *author,
-                 const char *publisher, int year, const char *category);
+int delete_book(AVLNode **root, int id);
 
-// Impressão
-void book_print(Book *book);
+void print_book(void *data);
+void book_print_all(AVLNode *root);
+void free_book(void *data);
 
-// Funções para ficheiros
-Book* book_from_string(const char *line);
-void book_to_string(Book *book, char *buffer, int buffer_size);
+AVLNode *book_insert(AVLNode *root, Book *book);
+AVLNode *book_remove(AVLNode *root, int id);
+Book *book_find(AVLNode *root, int id);
+
+int book_can_borrow(Book *book, int userAge);
+int book_decrease_available(Book *book);
+int book_increase_available(Book *book);
 
 #endif

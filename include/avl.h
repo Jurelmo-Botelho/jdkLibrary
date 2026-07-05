@@ -1,30 +1,34 @@
 #ifndef AVL_H
 #define AVL_H
 
-typedef struct AVLNode {
-    void *data;       
-    int key;           
-    int height;   
+#include "types.h"
+
+typedef struct AVLNode
+{
+    int key;
+    void *data;
+    int height;
     struct AVLNode *left;
     struct AVLNode *right;
+
 } AVLNode;
 
-typedef struct {
-    AVLNode *root;
-    int total;      
-} AVLTree;
+AVLNode *avl_create_node(int key, void *data);
+AVLNode *avl_insert(AVLNode *root, int key, void *data);
+AVLNode *avl_remove(AVLNode *root, int key);
+AVLNode *avl_search(AVLNode *root, int key);
 
-AVLTree *avl_create(void);
-void avl_destroy(AVLTree *tree, void (*free_data)(void *data));
+/* Utilitários */
+int avl_height(AVLNode *node);
+int avl_balance_factor(AVLNode *node);
+int avl_max(int a, int b);
+AVLNode *avl_min_node(AVLNode *root);
 
-//operações principais
-int  avl_insert(AVLTree *tree, int key, void *data);
-void *avl_search(AVLTree *tree, int key);
-int  avl_remove(AVLTree *tree, int key);
+/* Rotações */
+AVLNode *avl_rotate_left(AVLNode *node);
+AVLNode *avl_rotate_right(AVLNode *node);
 
-void avl_inorder(AVLTree *tree, void (*visit)(void *data));
-
-
-void avl_print(AVLTree *tree);
+/* Libertação */
+void avl_destroy(AVLNode *root);
 
 #endif
