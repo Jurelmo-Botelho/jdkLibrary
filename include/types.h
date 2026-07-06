@@ -36,6 +36,7 @@ typedef struct Queue Queue;
 typedef struct QueueNode QueueNode;
 typedef struct LoanNode LoanNode;
 typedef struct AVLNode AVLNode;
+typedef struct Date Date;
 
 
 #endif

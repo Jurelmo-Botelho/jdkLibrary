@@ -3,7 +3,7 @@
 
 #include "types.h"
 #include "avl.h"
-
+#include "loan.h" 
 
 typedef struct User
 {
@@ -17,6 +17,7 @@ typedef struct User
     Role role;
 
     int activeLoans;
+    LoanList myLoans; 
 
 } User;
 

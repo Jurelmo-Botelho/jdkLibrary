@@ -78,6 +78,10 @@ User *create_user(const char *username, const char *password, const char *name, 
     user->role = role;
     user->activeLoans = 0;
 
+    user->myLoans.head = NULL;       
+    user->myLoans.tail = NULL;       
+    user->myLoans.quantity = 0;  
+
     return user;
 }
 
@@ -156,8 +160,18 @@ void free_user(void *data)
     if (data == NULL)
         return;
 
-    free(data);
+    User *user = (User *)data;
+
+    Loan *current = user->myLoans.head;
+    while (current != NULL) {
+        Loan *next = current->nextUser; 
+        free(current);                 
+        current = next;                 
+    }
+
+    free(user); 
 }
+
 
 int user_can_borrow(User *user)
 {

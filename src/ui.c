@@ -302,7 +302,35 @@ void run_system(void)
                     //EMPRÉSTIMOS
 
                     case 9:
-                        printf("Emprestimo ainda nao implementado.\n");
+                        printf("\n--- EFECTUAR EMPRÉSTIMO ---\n");
+                        printf("\n--- Liros ---\n");
+                        book_print_all(bookRoot);
+                        printf("\n--- Utilizadores ---\n");
+                        user_print_all(userRoot);
+
+                        int id, book;
+
+                        printf("Inserir ID do Livro: ");
+                        if (!safe_read_int(&book)) break;
+
+                        printf("Inserir ID do Leitor: ");
+                        if (!safe_read_int(&id)) break; 
+
+                        User *selectedUser = user_find(userRoot, id);
+                        Book *selectedBook = book_find(bookRoot, book);
+                        if(!selectedUser || !selectedUser) {
+                            printf("Usuário ou Livro não encontrado");
+                            return;
+                        }
+                        if(!user_can_borrow(selectedUser) || !book_can_borrow(selectedBook, selectedUser->age))
+                         return;
+
+                         printf("EM DESENVOLVIMENTO...");
+
+
+
+
+
                         break;
 
                     case 10:
