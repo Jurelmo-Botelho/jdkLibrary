@@ -2,8 +2,9 @@
 #define USER_H
 
 #include "types.h"
-#include "avl.h"
-#include "loan.h" 
+#include "loan.h"
+
+extern int user_id_counter;
 
 typedef struct User
 {
@@ -54,8 +55,14 @@ AVLNode *user_remove(AVLNode *root, int id);
 
 User *user_find(AVLNode *root,int id);
 
-//Regras de Negócio
-
 int user_can_borrow(User *user);
+
+void load_users_from_file(AVLNode **userRoot, const char *filename);
+
+void save_user_to_file(User *user, const char *filename);
+
+void save_users_to_file(AVLNode *root, const char *filename);
+
+void save_users_recursive(AVLNode *node, FILE *file);
 
 #endif

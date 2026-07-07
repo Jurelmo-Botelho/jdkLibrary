@@ -4,7 +4,9 @@
 #include "types.h"
 #include "avl.h"
 #include "reserve.h"
+#include <stdio.h>  
 
+extern int book_id_counter;
 
 typedef struct Book{
 
@@ -56,5 +58,9 @@ int book_can_borrow(Book *book, int userAge);
 int book_decrease_available(Book *book);
 int book_increase_available(Book *book);
 void book_print_unavailable(AVLNode *root);
+void load_books_from_file(AVLNode **bookRoot, const char *filename);
+void save_book_to_file(Book *book, const char *filename);
+void save_books_to_file(AVLNode *root, const char *filename);
+void save_books_recursive(AVLNode *node, FILE *file);
 
-#endif
+#endif 

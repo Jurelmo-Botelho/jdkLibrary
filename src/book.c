@@ -3,8 +3,10 @@
 #include <string.h>
 
 #include "book.h"
-#include "validation.h"
+#include "avl.h"
 #include "reserve.h"
+#include "utils.h"
+#include "auth.h"
 
 int book_id_counter = 1;
 
@@ -253,4 +255,98 @@ void book_print_unavailable(AVLNode *root) {
     if (root->right) {
         book_print_unavailable(root->right);
     }
+}
+
+void load_books_from_file(AVLNode **bookRoot, const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        printf("Arquivo %s nao encontrado.\n", filename);
+        return;
+    }
+    
+    char line[512];
+    int loaded = 0;
+    
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0] == '\n' || line[0] == '\0') continue;
+        
+        int id, year, minAge, totalQty, availableQty, timesBorrowed;
+        char title[100], author[100], publisher[100], category[50];
+        
+        sscanf(line, "%d,%99[^,],%99[^,],%99[^,],%d,%49[^,],%d,%d,%d,%d",
+               &id, title, author, publisher, &year, category, &minAge, 
+               &totalQty, &availableQty, &timesBorrowed);
+        
+        Book *book = create_book(title, author, publisher, category, year, minAge, totalQty);
+        if (book) {
+            book->id = id;
+            book->availableQuantity = availableQty;
+            book->timesBorrowed = timesBorrowed;
+            book->reservations = NULL;
+            
+            if (id >= book_id_counter) {
+                book_id_counter = id + 1;
+            }
+            
+            *bookRoot = book_insert(*bookRoot, book);
+            loaded++;
+        }
+    }
+    
+    fclose(file);
+    printf("Carregados %d livros do arquivo %s\n", loaded, filename);
+}
+
+void save_book_to_file(Book *book, const char *filename) {
+    FILE *file = fopen(filename, "a");
+    if (!file) {
+        printf("Erro ao abrir arquivo %s\n", filename);
+        return;
+    }
+    
+    fprintf(file, "%d,%s,%s,%s,%d,%s,%d,%d,%d,%d\n",
+            book->id,
+            book->title,
+            book->author,
+            book->publisher,
+            book->year,
+            book->category,
+            book->minAge,
+            book->totalQuantity,
+            book->availableQuantity,
+            book->timesBorrowed);
+    
+    fclose(file);
+}
+
+void save_books_to_file(AVLNode *root, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        printf("Erro ao abrir arquivo %s\n", filename);
+        return;
+    }
+    
+    save_books_recursive(root, file);
+    fclose(file);
+}
+
+void save_books_recursive(AVLNode *node, FILE *file) {
+    if (!node) return;
+    
+    save_books_recursive(node->left, file);
+    
+    Book *book = (Book*)node->data;
+    fprintf(file, "%d,%s,%s,%s,%d,%s,%d,%d,%d,%d\n",
+            book->id,
+            book->title,
+            book->author,
+            book->publisher,
+            book->year,
+            book->category,
+            book->minAge,
+            book->totalQuantity,
+            book->availableQuantity,
+            book->timesBorrowed);
+    
+    save_books_recursive(node->right, file);
 }

@@ -1,10 +1,16 @@
-#include "loan.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
+#include "loan.h"
 #include "user.h"
 #include "book.h"
+#include "reserve.h"
+#include "date.h"
+#include "utils.h" 
+#include "auth.h" 
+
+int loan_id_counter = 1;
 
 Loan* loan_create(int id, Book *book, User *user, Date dataLoan, Date dataExpected) {
     Loan *newLoan = (Loan*)malloc(sizeof(Loan));
@@ -160,6 +166,47 @@ void loan_add_to_history(HistoryList *history, Loan *loan) {
     history->quantity++;
 }
 
+void process_reservations_after_return(LoanList *globalList, HistoryList *history, Book *book) {
+    if (!book) return;
+    
+    if (!book->reservations || book->reservations->size == 0) {
+        return;
+    }
+    
+    User *nextUser = reserve_pop(book);
+    
+    if (nextUser) {
+        Date hoje = date_today();
+        Date dataPrevista = date_add_days(hoje, 15);
+        
+        Loan *newLoan = loan_create(
+            globalList->quantity + 1,
+            book,
+            nextUser,
+            hoje,
+            dataPrevista
+        );
+        
+        if (newLoan) {
+            loan_add_to_global(globalList, newLoan);
+            loan_add_to_user(nextUser, newLoan);
+            book->availableQuantity--;
+            book->timesBorrowed++;  
+            
+            printf(" EMPRESTIMO AUTOMATICO REALIZADO!\n");
+            printf(" Usuario: %s (ID: %d)\n", nextUser->name, nextUser->id);
+            printf(" Livro: %s\n", book->title);
+            printf(" Data Devolucao: %02d/%02d/%04d\n",
+                   dataPrevista.day, dataPrevista.month, dataPrevista.year);
+        }
+        
+        if (book->reservations && book->reservations->size > 0) {
+            printf("\n   Ainda ha %d pessoa(s) na fila de espera.\n", 
+                   book->reservations->size);
+        }
+    }
+}
+
 void loan_return_book(LoanList *globalList, HistoryList *history, Loan *loan) {
     if (!loan || !globalList || !history) {
         printf("Erro: Parametros invalidos para devolucao.\n");
@@ -217,46 +264,7 @@ void loan_return_book(LoanList *globalList, HistoryList *history, Loan *loan) {
     
     process_reservations_after_return(globalList, history, loan->book);
 }
-void process_reservations_after_return(LoanList *globalList, HistoryList *history, Book *book) {
-    if (!book) return;
-    
-    if (!book->reservations || book->reservations->size == 0) {
-        return;
-    }
-    
-    User *nextUser = reserve_pop(book);
-    
-    if (nextUser) {
-        Date hoje = date_today();
-        Date dataPrevista = date_add_days(hoje, 15);
-        
-        Loan *newLoan = loan_create(
-            globalList->quantity + 1,
-            book,
-            nextUser,
-            hoje,
-            dataPrevista
-        );
-        
-        if (newLoan) {
-            loan_add_to_global(globalList, newLoan);
-            loan_add_to_user(nextUser, newLoan);
-            book->availableQuantity--;
-            book->timesBorrowed++;  
-            
-            printf(" EMPRESTIMO AUTOMATICO REALIZADO!\n");
-            printf(" Usuario: %s (ID: %d)\n", nextUser->name, nextUser->id);
-            printf(" Livro: %s\n", book->title);
-            printf(" Data Devolucao: %02d/%02d/%04d\n",
-                   dataPrevista.day, dataPrevista.month, dataPrevista.year);
-        }
-        
-        if (book->reservations && book->reservations->size > 0) {
-            printf("\n   Ainda ha %d pessoa(s) na fila de espera.\n", 
-                   book->reservations->size);
-        }
-    }
-}
+
 
 void process_book_return(LoanList *globalList, HistoryList *history, 
                             AVLNode *bookRoot, int bookId, int userId) {
@@ -404,3 +412,169 @@ void loan_free_history(HistoryList *history) {
         history->quantity = 0;
         free(history);
     }
+
+void load_loans_from_file(AVLNode *bookRoot, AVLNode *userRoot, 
+                          LoanList **globalList, const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        printf("Arquivo %s nao encontrado.\n", filename);
+        return;
+    }
+    
+    if (!*globalList) {
+        *globalList = (LoanList*)malloc(sizeof(LoanList));
+        (*globalList)->head = NULL;
+        (*globalList)->tail = NULL;
+        (*globalList)->quantity = 0;
+    }
+    
+    char line[512];
+    int loaded = 0;
+    
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0] == '\n' || line[0] == '\0') continue;
+        
+        int loanId, bookId, userId, status;
+        int d1, m1, y1, d2, m2, y2;
+        
+        sscanf(line, "%d,%d,%d,%d/%d/%d,%d/%d/%d,%d",
+               &loanId, &bookId, &userId,
+               &d1, &m1, &y1,
+               &d2, &m2, &y2,
+               &status);
+        
+        Book *book = book_find(bookRoot, bookId);
+        User *user = user_find(userRoot, userId);
+        
+        if (!book || !user) {
+            printf("Livro ou usuario nao encontrado para emprestimo %d\n", loanId);
+            continue;
+        }
+        
+        Loan *loan = (Loan*)malloc(sizeof(Loan));
+        loan->id = loanId;
+        loan->book = book;
+        loan->leitor = user;
+        loan->DataLoan = (Date){d1, m1, y1};
+        loan->DateExpected = (Date){d2, m2, y2};
+        loan->DateReturn = (Date){0, 0, 0};
+        loan->status = (LoanStatus)status;
+        loan->nextGlobal = NULL;
+        loan->nextUser = NULL;
+        
+        if (loan->status == LOAN_ACTIVE) {
+            loan_add_to_global(*globalList, loan);
+            loan_add_to_user(user, loan);
+            book->availableQuantity--;
+        }
+        
+        if (loanId >= loan_id_counter) {
+            loan_id_counter = loanId + 1;
+        }
+        
+        loaded++;
+    }
+    
+    fclose(file);
+    printf("Carregados %d emprestimos do arquivo %s\n", loaded, filename);
+}
+
+void load_history_from_file(AVLNode *bookRoot, AVLNode *userRoot, 
+                            HistoryList **history, const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        printf("Arquivo %s nao encontrado.\n", filename);
+        return;
+    }
+    
+    if (!*history) {
+        *history = (HistoryList*)malloc(sizeof(HistoryList));
+        (*history)->head = NULL;
+        (*history)->tail = NULL;
+        (*history)->quantity = 0;
+    }
+    
+    char line[512];
+    int loaded = 0;
+    
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0] == '\n' || line[0] == '\0') continue;
+        
+        int loanId, bookId, userId, status;
+        int d1, m1, y1, d2, m2, y2, d3, m3, y3;
+        
+        sscanf(line, "%d,%d,%d,%d/%d/%d,%d/%d/%d,%d/%d/%d,%d",
+               &loanId, &bookId, &userId,
+               &d1, &m1, &y1,
+               &d2, &m2, &y2,
+               &d3, &m3, &y3,
+               &status);
+        
+        Book *book = book_find(bookRoot, bookId);
+        User *user = user_find(userRoot, userId);
+        
+        if (!book || !user) continue;
+        
+        Loan *loan = (Loan*)malloc(sizeof(Loan));
+        loan->id = loanId;
+        loan->book = book;
+        loan->leitor = user;
+        loan->DataLoan = (Date){d1, m1, y1};
+        loan->DateExpected = (Date){d2, m2, y2};
+        loan->DateReturn = (Date){d3, m3, y3};
+        loan->status = (LoanStatus)status;
+        loan->nextGlobal = NULL;
+        loan->nextUser = NULL;
+        
+        loan_add_to_history(*history, loan);
+        loaded++;
+    }
+    
+    fclose(file);
+    printf("Carregados %d historicos do arquivo %s\n", loaded, filename);
+}
+
+void save_loans_to_file(LoanList *list, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        printf("Erro ao abrir arquivo %s\n", filename);
+        return;
+    }
+    
+    Loan *current = list->head;
+    while (current) {
+        fprintf(file, "%d,%d,%d,%02d/%02d/%04d,%02d/%02d/%04d,%d\n",
+                current->id,
+                current->book->id,
+                current->leitor->id,
+                current->DataLoan.day, current->DataLoan.month, current->DataLoan.year,
+                current->DateExpected.day, current->DateExpected.month, current->DateExpected.year,
+                current->status);
+        current = current->nextGlobal;
+    }
+    
+    fclose(file);
+}
+
+void save_history_to_file(HistoryList *history, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        printf("Erro ao abrir arquivo %s\n", filename);
+        return;
+    }
+    
+    Loan *current = history->head;
+    while (current) {
+        fprintf(file, "%d,%d,%d,%02d/%02d/%04d,%02d/%02d/%04d,%02d/%02d/%04d,%d\n",
+                current->id,
+                current->book->id,
+                current->leitor->id,
+                current->DataLoan.day, current->DataLoan.month, current->DataLoan.year,
+                current->DateExpected.day, current->DateExpected.month, current->DateExpected.year,
+                current->DateReturn.day, current->DateReturn.month, current->DateReturn.year,
+                current->status);
+        current = current->nextGlobal;
+    }
+    
+    fclose(file);
+}

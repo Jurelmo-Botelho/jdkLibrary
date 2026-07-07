@@ -3,7 +3,11 @@
 #include <string.h>
 
 #include "user.h"
-#include "validation.h"
+#include "avl.h"
+#include "loan.h"
+#include "date.h"
+#include "utils.h"
+#include "auth.h"
 
 int user_id_counter = 1;
 
@@ -172,7 +176,6 @@ void free_user(void *data)
     free(user); 
 }
 
-
 int user_can_borrow(User *user)
 {
     if (user == NULL)
@@ -215,4 +218,86 @@ User *user_find(AVLNode *root, int id)
         return NULL;
 
     return (User *)node->data;
+}
+
+void load_users_from_file(AVLNode **userRoot, const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (!file) {
+        printf("Arquivo %s não encontrado.\n", filename);
+        return;
+    }
+    
+    char line[512];
+    int loaded = 0;
+    
+    while (fgets(line, sizeof(line), file)) {
+        if (line[0] == '\n' || line[0] == '\0') continue;
+        
+        int id, age, role, activeLoans;
+        char username[50], name[100], password[50], phone[20];
+        
+        sscanf(line, "%d,%49[^,],%99[^,],%49[^,],%19[^,],%d,%d,%d",
+               &id, username, name, password, phone, &age, &role, &activeLoans);
+        
+        User *user = create_user(username, password, name, age, phone, (Role)role);
+        if (user) {
+            user->id = id;
+            user->activeLoans = activeLoans;
+            user->myLoans.head = NULL;
+            user->myLoans.tail = NULL;
+            user->myLoans.quantity = 0;
+            if (id >= user_id_counter) {
+                user_id_counter = id + 1;
+            }
+            *userRoot = user_insert(*userRoot, user);
+            loaded++;
+        }
+    }
+    
+    fclose(file);
+    printf("Carregados %d utilizadores do arquivo %s\n", loaded, filename);
+}
+
+void save_user_to_file(User *user, const char *filename) {
+    FILE *file = fopen(filename, "a");
+    if (!file) {
+        printf("Erro ao abrir arquivo %s\n", filename);
+        return;
+    }
+    
+    fprintf(file, "%d,%s,%s,%s,%s,%d,%d,%d\n",
+            user->id, user->username, user->name, user->password,
+            user->phone, user->age, user->role, user->activeLoans);
+    
+    fclose(file);
+}
+
+void save_users_to_file(AVLNode *root, const char *filename) {
+    FILE *file = fopen(filename, "w");
+    if (!file) {
+        printf("Erro ao abrir arquivo %s\n", filename);
+        return;
+    }
+    
+    save_users_recursive(root, file);
+    fclose(file);
+}
+
+void save_users_recursive(AVLNode *node, FILE *file) {
+    if (!node) return;
+    
+    save_users_recursive(node->left, file);
+    
+    User *user = (User*)node->data;
+    fprintf(file, "%d,%s,%s,%s,%s,%d,%d,%d\n",
+            user->id,
+            user->username,
+            user->name,
+            user->password,
+            user->phone,
+            user->age,
+            user->role,
+            user->activeLoans);
+    
+    save_users_recursive(node->right, file);
 }

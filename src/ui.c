@@ -7,23 +7,9 @@
 #include "book.h"
 #include "user.h"
 #include "date.h"
-
-int safe_read_int(int *value)
-{
-    int result = scanf("%d", value);
-
-    if (result != 1)
-    {
-        printf("Erro: entrada invalida.\n");
-
-        /* limpar buffer */
-        while (getchar() != '\n');
-
-        return 0;
-    }
-
-    return 1;
-}
+#include "data_persistence.h"
+#include "loan.h"
+#include "utils.h"
 
 void show_main_menu(void)
 {
@@ -85,6 +71,8 @@ void run_system(void)
 
     Session *session = create_session();
 
+    load_all_data(&userRoot, &bookRoot, &globalLoans, &history);
+
     int option;
 
     while (1)
@@ -144,7 +132,14 @@ void run_system(void)
 
                 case 0:
                     printf("A sair do sistema...\n");
+                    save_all_data(userRoot, bookRoot, globalLoans, history);
+                    avl_destroy(userRoot);
+                    avl_destroy(bookRoot);
+                    loan_free_global(globalLoans);
+                    loan_free_history(history);
+
                     destroy_session(session);
+
                     return;
 
                 default:
