@@ -17,7 +17,6 @@ int validate_author(const char *author);
 int validate_category(const char *category);
 int validate_quantity(int total, int available);
 
-/* General */
 int is_positive_int(int value);
 
 #endif

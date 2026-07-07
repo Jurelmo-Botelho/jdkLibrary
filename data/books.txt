@@ -6,6 +6,6 @@
 6, Uma Breve História do Tempo, Stephen Hawking, Intrínseca,2015, Tecnologia,14,10,10,0
 8, Arquitetura Limpa, Robert C. Martin, Alta Books,2018, Informática,18,10,10,0
 9, Como as Democracias Morrem, Steven Levitsky & Daniel Ziblatt, Zahar,2018, Política,16,10,10,0
-10, Amores Improváveis, Hanna Wells, Garract Edith,2014, Romance,18,1,-3,3
+10, Amores Improváveis, Hanna Wells, Garract Edith,2014, Romance,18,1,1,3
 11,Amores Improvaveis 2,ALice Preto,Garrect Edith,2016,Romance,18,4,4,0
 12,O Odio que voce semeia,Coolean Hoover,Hoover,2014,Romance,18,2,2,0

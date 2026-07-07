@@ -1,4 +1,1 @@
-1,admin,Administrador,admin123,000000000,30,1,0
-2,jubotelho,Jurelmo,ju123,991811948,22,2,0
-3,F22,Fabio,F123,991811948,22,2,0
-4,Isa,Isabel,1234,953946308,20,2,4
+
