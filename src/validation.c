@@ -63,10 +63,19 @@ int validate_phone(const char *phone)
 
     int len = strlen(phone);
 
-    if (len < 7 || len > MAX_PHONE)
+    if (len < 7 || len > MAX_PHONE - 1)
     {
         printf("Erro: telefone fora do formato.\n");
         return 0;
+    }
+
+    for (int i = 0; i < len; i++)
+    {
+        if (!isdigit((unsigned char)phone[i]))
+        {
+            printf("Erro: telefone deve conter apenas numeros.\n");
+            return 0;
+        }
     }
 
     return 1;

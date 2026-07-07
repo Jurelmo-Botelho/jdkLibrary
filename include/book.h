@@ -54,6 +54,16 @@ AVLNode *book_insert(AVLNode *root, Book *book);
 AVLNode *book_remove(AVLNode *root, int id);
 Book *book_find(AVLNode *root, int id);
 
+Book *book_find_by_title(AVLNode *root, const char *title);
+int book_find_by_author(AVLNode *root, const char *author);
+
+void book_print_by_category(AVLNode *root, const char *category);
+int category_exists(AVLNode *root, const char *category);
+
+void book_list_categories(AVLNode *root);
+int book_get_category_by_index(AVLNode *root, int index, char *category);
+int book_count_categories(AVLNode *root);
+
 int book_can_borrow(Book *book, int userAge);
 int book_decrease_available(Book *book);
 int book_increase_available(Book *book);

@@ -180,7 +180,7 @@ void process_reservations_after_return(LoanList *globalList, HistoryList *histor
         Date dataPrevista = date_add_days(hoje, 15);
         
         Loan *newLoan = loan_create(
-            globalList->quantity + 1,
+            loan_id_counter++,
             book,
             nextUser,
             hoje,

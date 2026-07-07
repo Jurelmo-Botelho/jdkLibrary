@@ -1,1 +1,1 @@
-
+1,admin,Administrador,admin123,000000000,30,1,0

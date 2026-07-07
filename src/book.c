@@ -28,6 +28,18 @@ Book *create_book(const char *title, const char *author, const char *publisher, 
         return NULL;
     }
 
+    if (year < 1450 || year > 2100)
+    {
+        printf("Erro: ano invalido.\n");
+        return NULL;
+    }
+
+    if (minAge < 0 || minAge > 120)
+    {
+        printf("Erro: idade minima invalida.\n");
+        return NULL;
+    }
+
     Book *book = (Book *)malloc(sizeof(Book));
 
     if (book == NULL)
@@ -69,19 +81,90 @@ int update_book(AVLNode *root, int id, const char *newTitle, const char *newAuth
     Book *book = (Book *)node->data;
 
     if (newTitle != NULL)
-        strncpy(book->title, newTitle, MAX_TITLE);
+    {
+        if (!validate_title(newTitle))
+            return 0;
+
+        strncpy(book->title, newTitle, MAX_TITLE - 1);
+        book->title[MAX_TITLE - 1] = '\0';
+    }
 
     if (newAuthor != NULL)
-        strncpy(book->author, newAuthor, MAX_AUTHOR);
+    {
+        if (!validate_author(newAuthor))
+            return 0;
+
+        strncpy(book->author, newAuthor, MAX_AUTHOR - 1);
+        book->author[MAX_AUTHOR - 1] = '\0';
+    }
 
     if (newCategory != NULL)
-        strncpy(book->category, newCategory, MAX_CATEGORY);
+    {
+        if (!validate_category(newCategory))
+            return 0;
+
+        strncpy(book->category, newCategory, MAX_CATEGORY - 1);
+        book->category[MAX_CATEGORY - 1] = '\0';
+    }
 
     if (newMinAge >= 0)
+    {
+        if (newMinAge > 120)
+        {
+            printf("Erro: idade minima invalida.\n");
+            return 0;
+        }
+
         book->minAge = newMinAge;
+    }
 
     printf("Livro atualizado com sucesso.\n");
     return 1;
+}
+
+Book *book_find_by_title(AVLNode *root, const char *title)
+{
+    if (root == NULL)
+        return NULL;
+
+    Book *book = (Book *)root->data;
+
+    if (strcmp(book->title, title) == 0)
+        return book;
+
+    Book *found = book_find_by_title(root->left, title);
+
+    if (found != NULL)
+        return found;
+
+    return book_find_by_title(root->right, title);
+}
+
+int book_find_by_author(AVLNode *root, const char *author)
+{
+    if (root == NULL)
+        return 0;
+
+
+    int count = 0;
+
+
+    count += book_find_by_author(root->left, author);
+
+
+    Book *book = (Book *)root->data;
+
+    if (strcmp(book->author, author) == 0)
+    {
+        print_book(book);
+        count++;
+    }
+
+
+    count += book_find_by_author(root->right, author);
+
+
+    return count;
 }
 
 int delete_book(AVLNode **root, int id)
@@ -135,6 +218,66 @@ void book_print_all(AVLNode *root)
     book_print_all(root->right);
 }
 
+int category_exists(AVLNode *root, const char *category)
+{
+    if (root == NULL)
+        return 0;
+
+    Book *book = (Book *)root->data;
+
+    if (strcmp(book->category, category) == 0)
+        return 1;
+
+    return category_exists(root->left, category)
+        || category_exists(root->right, category);
+}
+
+void book_print_by_category(AVLNode *root, const char *category)
+{
+    if (root == NULL)
+        return;
+
+    book_print_by_category(root->left, category);
+
+    Book *book = (Book *)root->data;
+
+    if (strcmp(book->category, category) == 0)
+        print_book(book);
+
+    book_print_by_category(root->right, category);
+}
+
+int category_already_exists(char categories[][MAX_CATEGORY], int size, const char *category){
+    
+    for (int i = 0; i < size; i++)
+    {
+        if (strcmp(categories[i], category) == 0)
+            return 1;
+    }
+
+    return 0;
+}
+
+void count_categories_recursive(AVLNode *root,char categories[][MAX_CATEGORY], int *count){
+
+    if (root == NULL)
+        return;
+
+
+    count_categories_recursive(root->left, categories, count);
+
+
+    Book *book = (Book *)root->data;
+
+
+    if (!category_already_exists(categories, *count, book->category))
+    {
+        strcpy(categories[*count], book->category);
+        (*count)++;
+    }
+
+    count_categories_recursive(root->right, categories, count);
+}
 
 void free_book(void *data)
 {
@@ -148,6 +291,64 @@ void free_book(void *data)
     }
 
     free(book);
+}
+
+int book_count_categories(AVLNode *root)
+{
+    char categories[100][MAX_CATEGORY];
+
+    int count = 0;
+
+
+    count_categories_recursive(root, categories, &count);
+
+
+    return count;
+}
+
+void book_list_categories(AVLNode *root)
+{
+    char categories[100][MAX_CATEGORY];
+
+    int count = 0;
+
+
+    count_categories_recursive(root, categories, &count);
+
+
+    if (count == 0)
+    {
+        printf("Nenhuma categoria encontrada.\n");
+        return;
+    }
+
+
+    printf("\n===== CATEGORIAS =====\n");
+
+
+    for (int i = 0; i < count; i++)
+    {
+        printf("%d. %s\n", i + 1, categories[i]);
+    }
+}
+
+int book_get_category_by_index(AVLNode *root, int index, char *category)
+{
+    char categories[100][MAX_CATEGORY];
+
+    int count = 0;
+
+
+    count_categories_recursive(root, categories, &count);
+
+
+    if (index < 1 || index > count)
+        return 0;
+
+
+    strcpy(category, categories[index - 1]);
+
+    return 1;
 }
 
 

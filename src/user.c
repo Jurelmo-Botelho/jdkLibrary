@@ -55,9 +55,9 @@ User *create_user(const char *username, const char *password, const char *name, 
     if (!validate_name(name))
         return NULL;
 
-    if (age <= 0)
+    if (age < 1 || age > 120)
     {
-        printf("Erro: idade inválida.\n");
+        printf("Erro: idade invalida.\n");
         return NULL;
     }
 
@@ -90,7 +90,7 @@ User *create_user(const char *username, const char *password, const char *name, 
     return user;
 }
 
-int update_user(AVLNode *root, int id, const char *newName, int newAge,const char *newPhone){
+int update_user(AVLNode *root, int id, const char *newName, int newAge, const char *newPhone){
 
     AVLNode *node = avl_search(root, id);
 
@@ -103,13 +103,33 @@ int update_user(AVLNode *root, int id, const char *newName, int newAge,const cha
     User *user = (User *)node->data;
 
     if (newName != NULL)
-        strncpy(user->name, newName, MAX_NAME);
+    {
+        if (!validate_name(newName))
+            return 0;
+
+        strncpy(user->name, newName, MAX_NAME - 1);
+        user->name[MAX_NAME - 1] = '\0';
+    }
 
     if (newAge > 0)
+    {
+        if (newAge > 120)
+        {
+            printf("Erro: idade invalida.\n");
+            return 0;
+        }
+
         user->age = newAge;
+    }
 
     if (newPhone != NULL)
-        strncpy(user->phone, newPhone, MAX_PHONE);
+    {
+        if (!validate_phone(newPhone))
+            return 0;
+
+        strncpy(user->phone, newPhone, MAX_PHONE - 1);
+        user->phone[MAX_PHONE - 1] = '\0';
+    }
 
     printf("Utilizador atualizado com sucesso.\n");
     return 1;
@@ -120,6 +140,20 @@ int delete_user(AVLNode **root, int id)
     if (root == NULL || *root == NULL)
     {
         printf("Erro: arvore invalida.\n");
+        return 0;
+    }
+
+    User *user = user_find(*root, id);
+
+    if (user == NULL)
+    {
+        printf("Erro: utilizador nao encontrado.\n");
+        return 0;
+    }
+
+    if (user->role == ROLE_ADMIN)
+    {
+        printf("Erro: nao e permitido remover um administrador.\n");
         return 0;
     }
 

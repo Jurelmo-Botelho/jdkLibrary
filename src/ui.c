@@ -55,6 +55,60 @@ void show_admin_menu(void)
     printf("Opcao: ");
 }
 
+
+static void handle_book_listing(AVLNode *bookRoot)
+{
+    int option;
+
+    printf("\n--- CONSULTAR LIVROS ---\n");
+    printf("1. Todos\n");
+    printf("2. Por Categoria\n");
+    printf("Opcao: ");
+
+    if (!safe_read_int(&option))
+        return;
+
+    switch (option)
+    {
+        case 1:
+
+            book_print_all(bookRoot);
+
+            break;
+
+        case 2:
+        {
+            int categoryOption;
+
+            book_list_categories(bookRoot);
+
+            printf("\nEscolha uma categoria: ");
+
+            if (!safe_read_int(&categoryOption))
+                return;
+
+            char category[MAX_CATEGORY];
+
+            if (!book_get_category_by_index(bookRoot, categoryOption, category))
+            {
+                printf("Categoria invalida.\n");
+                return;
+            }
+
+            printf("\n--- LIVROS DA CATEGORIA: %s ---\n",
+           category);
+
+             book_print_by_category(bookRoot, category);
+
+            break;
+        }
+
+        default:
+
+            printf("Opcao invalida.\n");
+    }
+}
+
 static void handle_admin_register_book(AVLNode **bookRoot)
 {
     char title[MAX_TITLE];
@@ -64,16 +118,20 @@ static void handle_admin_register_book(AVLNode **bookRoot)
     int year, minAge, qty;
 
     printf("Titulo: ");
-    scanf(" %[^\n]", title);
+    if(!safe_read_string(title, MAX_TITLE))
+        return;
 
     printf("Autor: ");
-    scanf(" %[^\n]", author);
+    if(!safe_read_string(author, MAX_AUTHOR))
+        return;
 
     printf("Editora: ");
-    scanf(" %[^\n]", publisher);
+    if(!safe_read_string(publisher, MAX_PUBLISHER))
+        return;
 
     printf("Categoria: ");
-    scanf(" %[^\n]", category);
+    if(!safe_read_string(category, MAX_CATEGORY))
+        return;
 
     printf("Ano: ");
     if (!safe_read_int(&year)) return;
@@ -83,6 +141,12 @@ static void handle_admin_register_book(AVLNode **bookRoot)
 
     printf("Quantidade: ");
     if (!safe_read_int(&qty)) return;
+
+    if(qty <= 0)
+    {
+        printf("Quantidade invalida.\n");
+        return;
+    }
 
     register_book(bookRoot, title, author, publisher, category, year, minAge, qty);
 }
@@ -99,16 +163,20 @@ static void handle_admin_update_book(AVLNode *bookRoot)
     int minAge;
 
     printf("Novo titulo: ");
-    scanf(" %[^\n]", title);
+    if(!safe_read_string(title, MAX_TITLE))
+        return;
 
     printf("Novo autor: ");
-    scanf(" %[^\n]", author);
+    if(!safe_read_string(author, MAX_AUTHOR))
+        return;
 
     printf("Nova categoria: ");
-    scanf(" %[^\n]", category);
+    if(!safe_read_string(category, MAX_CATEGORY))
+        return;
 
     printf("Nova idade minima: ");
-    if (!safe_read_int(&minAge)) return;
+    if (!safe_read_int(&minAge)) 
+        return;
 
     update_book(bookRoot, id, title, author, category, minAge);
 }
@@ -116,9 +184,39 @@ static void handle_admin_update_book(AVLNode *bookRoot)
 static void handle_admin_delete_book(AVLNode **bookRoot)
 {
     int id;
+
     printf("ID do livro: ");
-    if (!safe_read_int(&id)) return;
-    delete_book(bookRoot, id);
+
+    if (!safe_read_int(&id))
+        return;
+
+
+    Book *book = book_find(*bookRoot,id);
+
+    if(book == NULL)
+    {
+        printf("Livro nao encontrado.\n");
+        return;
+    }
+
+    printf("\nLivro selecionado:\n");
+
+    if(book->availableQuantity < book->totalQuantity)
+    {
+        printf("Livro possui exemplares emprestados.\n");
+        return;
+    }
+
+    print_book(book);
+
+    if(confirm_action("Deseja realmente remover este livro?"))
+    {
+        delete_book(bookRoot,id);
+    }
+    else
+    {
+        printf("Operacao cancelada.\n");
+    }
 }
 
 static void handle_admin_register_user(AVLNode **userRoot)
@@ -130,19 +228,30 @@ static void handle_admin_register_user(AVLNode **userRoot)
     char phone[MAX_PHONE];
 
     printf("Username: ");
-    scanf("%s", username);
+    if(!safe_read_string(username, MAX_USERNAME))
+        return;
 
     printf("Password: ");
-    scanf("%s", password);
+    if(!safe_read_string(password, MAX_PASSWORD))
+        return;
 
     printf("Nome: ");
-    scanf(" %[^\n]", name);
+    if(!safe_read_string(name, MAX_NAME))
+        return;
 
     printf("Idade: ");
-    if (!safe_read_int(&age)) return;
+    if (!safe_read_int(&age)) 
+        return;
+
+    if(age < 5 || age > 120)
+    {
+        printf("Idade invalida.\n");
+        return;
+    }
 
     printf("Telefone: ");
-    scanf("%s", phone);
+    if(!safe_read_string(phone, MAX_PHONE))
+        return;
 
     register_user(userRoot, username, password, name, age, phone, ROLE_STUDENT);
 }
@@ -151,20 +260,24 @@ static void handle_admin_update_user(AVLNode *userRoot)
 {
     int id;
     printf("ID do utilizador: ");
-    if (!safe_read_int(&id)) return;
+    if (!safe_read_int(&id)) 
+        return;
 
     char name[MAX_NAME];
     int age;
     char phone[MAX_PHONE];
 
     printf("Novo nome: ");
-    scanf(" %[^\n]", name);
+    if(!safe_read_string(name, MAX_NAME))
+        return;
 
     printf("Nova idade: ");
-    if (!safe_read_int(&age)) return;
+    if (!safe_read_int(&age)) 
+        return;
 
     printf("Novo telefone: ");
-    scanf("%s", phone);
+    if(!safe_read_string(name, MAX_NAME))
+        return;
 
     update_user(userRoot, id, name, age, phone);
 }
@@ -172,9 +285,42 @@ static void handle_admin_update_user(AVLNode *userRoot)
 static void handle_admin_delete_user(AVLNode **userRoot)
 {
     int id;
+
+
     printf("ID do utilizador: ");
-    if (!safe_read_int(&id)) return;
-    delete_user(userRoot, id);
+
+    if (!safe_read_int(&id))
+        return;
+
+
+    User *user = user_find(*userRoot,id);
+
+
+    if(user == NULL)
+    {
+        printf("Utilizador nao encontrado.\n");
+        return;
+    }
+
+
+    printf("\nUtilizador selecionado:\n");
+
+    if(user->activeLoans > 0)
+    {
+        printf("Utilizador possui emprestimos ativos.\n");
+        return;
+    }
+
+    print_user(user);
+
+    if(confirm_action("Deseja realmente remover este utilizador?"))
+    {
+        delete_user(userRoot,id);
+    }
+    else
+    {
+        printf("Operacao cancelada.\n");
+    }
 }
 
 static void handle_loan_creation(AVLNode *bookRoot, AVLNode *userRoot, 
@@ -229,7 +375,7 @@ static void handle_loan_creation(AVLNode *bookRoot, AVLNode *userRoot,
     Date dateExpected = date_add_days(today, 15);
 
     Loan *newLoan = loan_create(
-        globalLoans->quantity + 1,
+        loan_id_counter++,
         selectedBook,
         selectedUser,
         today,
@@ -370,15 +516,76 @@ static void handle_user_my_history(HistoryList *history, AVLNode *userRoot, int 
 
 static void handle_user_search_book(AVLNode *bookRoot)
 {
-    int id;
-    printf("ID do livro: ");
-    if (!safe_read_int(&id)) return;
+    int option;
 
-    Book *book = book_find(bookRoot, id);
-    if (book)
-        print_book(book);
-    else
-        printf("Livro nao encontrado.\n");
+    printf("\n--- PESQUISAR LIVRO ---\n");
+    printf("1. Por ID\n");
+    printf("2. Por Titulo\n");
+    printf("3. Por Autor\n");
+    printf("Opcao: ");
+
+    if (!safe_read_int(&option))
+        return;
+
+    switch (option)
+    {
+        case 1:
+        {
+            int id;
+
+            printf("ID: ");
+
+            if (!safe_read_int(&id))
+                return;
+
+            Book *book = book_find(bookRoot, id);
+
+            if (book)
+                print_book(book);
+            else
+                printf("Livro nao encontrado.\n");
+
+            break;
+        }
+
+        case 2:
+        {
+            char title[MAX_TITLE];
+
+            printf("Titulo: ");
+            safe_read_string(title, MAX_TITLE);
+
+            Book *book = book_find_by_title(bookRoot, title);
+
+            if (book)
+                print_book(book);
+            else
+                printf("Livro nao encontrado.\n");
+
+            break;
+        }
+
+        case 3:
+        {
+            char author[MAX_AUTHOR];
+
+            printf("Autor: ");
+            safe_read_string(author, MAX_AUTHOR);
+
+            int found = book_find_by_author(bookRoot, author);
+
+            if(found == 0)
+            {
+                printf("Nenhum livro encontrado desse autor.\n");
+            }
+
+
+            break;
+        }
+
+        default:
+            printf("Opcao invalida.\n");
+    }
 }
 
 static void handle_register_account(AVLNode **userRoot)
@@ -390,19 +597,30 @@ static void handle_register_account(AVLNode **userRoot)
     char phone[MAX_PHONE];
 
     printf("Username: ");
-    scanf("%s", username);
+    if(!safe_read_string(username, MAX_USERNAME))
+        return;
 
     printf("Password: ");
-    scanf("%s", password);
+    if(!safe_read_string(password, MAX_PASSWORD))
+        return;
 
     printf("Nome: ");
-    scanf(" %[^\n]", name);
+    if(!safe_read_string(name, MAX_NAME))
+        return;
 
     printf("Idade: ");
-    if (!safe_read_int(&age)) return;
+    if (!safe_read_int(&age)) 
+        return;
+
+    if(age < 5 || age > 120)
+    {
+        printf("Idade invalida.\n");
+        return;
+    }
 
     printf("Telefone: ");
-    scanf("%s", phone);
+    if(!safe_read_string(phone, MAX_PHONE))
+        return;
 
     register_user(userRoot, username, password, name, age, phone, ROLE_STUDENT);
 }
@@ -413,10 +631,12 @@ static void handle_login(Session *session, AVLNode *userRoot)
     char password[MAX_PASSWORD];
 
     printf("Username: ");
-    scanf("%s", username);
+    if(!safe_read_string(username, MAX_USERNAME))
+        return;
 
     printf("Password: ");
-    scanf("%s", password);
+    if(!safe_read_string(password, MAX_PASSWORD))
+        return;
 
     login(session, userRoot, username, password);
 }
@@ -426,21 +646,34 @@ void run_system(void)
     AVLNode *userRoot = NULL;
     AVLNode *bookRoot = NULL;
     LoanList *globalLoans = (LoanList *)malloc(sizeof(LoanList));
+
+    if(globalLoans == NULL)
+    {
+        printf("Erro ao criar lista de emprestimos.\n");
+        return;
+    }
+
     if (globalLoans != NULL) {
         globalLoans->head = NULL;
         globalLoans->tail = NULL;
         globalLoans->quantity = 0;
     }
     HistoryList *history = (HistoryList*)malloc(sizeof(HistoryList));
+
+    if(history == NULL)
+    {
+        printf("Erro ao criar historico.\n");
+        return;
+    }
     history->head = NULL;
     history->tail = NULL;
     history->quantity = 0;
 
-    create_default_admin(&userRoot);
-
     Session *session = create_session();
 
     load_all_data(&userRoot, &bookRoot, &globalLoans, &history);
+
+    create_default_admin(&userRoot);
 
     int option;
 
@@ -502,8 +735,7 @@ void run_system(void)
                         break;
 
                     case 4:
-                        printf("\n--- LIVROS ---\n");
-                        book_print_all(bookRoot);
+                        handle_book_listing(bookRoot);
                         break;
 
                     case 5:
@@ -567,8 +799,7 @@ void run_system(void)
                 switch (option)
                 {
                     case 1:
-                        printf("\n--- LIVROS ---\n");
-                        book_print_all(bookRoot);
+                        handle_book_listing(bookRoot);
                         break;
 
                     case 2:

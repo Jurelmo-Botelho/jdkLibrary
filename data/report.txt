@@ -1,0 +1,36 @@
+Relatorio  
+
+Livros:
+Mias Emprestados:
+
+Menos Emprestados:
+
+Nunca Emprestados (10):
+- 2
+-  De Zero a Um
+-  Algoritmo Mestre
+-  Código Limpo
+-  A República
+-  Uma Breve História do Tempo
+-  Arquitetura Limpa
+-  Como as Democracias Morrem
+- Amores Improvaveis 2
+- O Odio que voce semeia
+
+ Disponiveis: 9
+Indisponiveis: 1
+
+ Leitores :
+Mais Activos:
+
+ Com mais empréstimos activos:
+
+ Sem EMpréstimos: 1
+ Passaram o praso: 0
+
+Totais:
+Livros: 10
+Leitores: 1
+Empréstimos: 0
+Devoluções: 0
+Reservas: 0
