@@ -58,4 +58,7 @@ void load_history_from_file(AVLNode *bookRoot, AVLNode *userRoot,
 void save_loans_to_file(LoanList *list, const char *filename);
 void save_history_to_file(HistoryList *history, const char *filename);
 
+void loan_print_user_history(HistoryList *history, int userId);
+void loan_print_all_history(HistoryList *history);
+
 #endif

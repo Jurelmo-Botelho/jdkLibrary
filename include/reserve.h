@@ -31,4 +31,7 @@ void load_reservations_from_file(AVLNode *bookRoot, AVLNode *userRoot, const cha
 void save_reservations_to_file(AVLNode *bookRoot, const char *filename);
 void save_reservations_recursive(AVLNode *node, FILE *file);
 
+void reserve_print_user_reservations(AVLNode *bookRoot, User *user);
+void reserve_print_user_reservations_recursive(AVLNode *node, User *user, int *found);
+
 #endif

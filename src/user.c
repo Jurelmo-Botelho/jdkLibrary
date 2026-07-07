@@ -8,6 +8,7 @@
 #include "date.h"
 #include "utils.h"
 #include "auth.h"
+#include "validation.h"
 
 int user_id_counter = 1;
 

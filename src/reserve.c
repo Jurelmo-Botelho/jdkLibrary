@@ -304,3 +304,50 @@ void save_reservations_recursive(AVLNode *node, FILE *file) {
     
     save_reservations_recursive(node->right, file);
 }
+
+
+void reserve_print_user_reservations(AVLNode *bookRoot, User *user) {
+    if (!bookRoot || !user) {
+        printf("Erro: parametros invalidos.\n");
+        return;
+    }
+    
+    int found = 0;
+    printf("\n--- MINHAS RESERVAS ---\n");
+    printf("Usuario: %s (ID: %d)\n", user->name, user->id);
+    printf("Livro                | Posicao na fila | Data da Reserva\n");
+    printf("---------------------|----------------|---------------\n");
+    
+    reserve_print_user_reservations_recursive(bookRoot, user, &found);
+    
+    if (!found) {
+        printf("Nenhuma reserva encontrada.\n");
+    }
+}
+
+void reserve_print_user_reservations_recursive(AVLNode *node, User *user, int *found) {
+    if (!node) return;
+    
+    reserve_print_user_reservations_recursive(node->left, user, found);
+    
+    Book *book = (Book*)node->data;
+    if (book->reservations && book->reservations->size > 0) {
+        ReserveNode *current = book->reservations->front;
+        int position = 1;
+        while (current) {
+            if (current->user->id == user->id) {
+                printf("%-20s | %d           | %02d/%02d/%04d\n",
+                       book->title,
+                       position,
+                       current->reserveDate.day,
+                       current->reserveDate.month,
+                       current->reserveDate.year);
+                (*found)++;
+            }
+            position++;
+            current = current->next;
+        }
+    }
+    
+    reserve_print_user_reservations_recursive(node->right, user, found);
+}

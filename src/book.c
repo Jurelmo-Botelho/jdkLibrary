@@ -7,6 +7,7 @@
 #include "reserve.h"
 #include "utils.h"
 #include "auth.h"
+#include "validation.h"
 
 int book_id_counter = 1;
 

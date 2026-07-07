@@ -578,3 +578,56 @@ void save_history_to_file(HistoryList *history, const char *filename) {
     
     fclose(file);
 }
+
+
+void loan_print_user_history(HistoryList *history, int userId) {
+    if (!history || history->quantity == 0) {
+        printf("Nenhum historico disponivel.\n");
+        return;
+    }
+    
+    Loan *current = history->head;
+    int found = 0;
+    
+    printf("\n--- HISTORICO DO USUARIO (ID: %d) ---\n", userId);
+    printf("ID  |  Livro              |  Data Emprestimo   |  Data Devolucao\n");
+    printf("\n");
+    
+    while (current) {
+        if (current->leitor->id == userId) {
+            printf("%3d | %-20s | %02d/%02d/%04d | %02d/%02d/%04d\n",
+                   current->id,
+                   current->book->title,
+                   current->DataLoan.day, current->DataLoan.month, current->DataLoan.year,
+                   current->DateReturn.day, current->DateReturn.month, current->DateReturn.year);
+            found++;
+        }
+        current = current->nextGlobal;
+    }
+    
+    if (!found) {
+        printf("Nenhum historico encontrado para este usuario.\n");
+    }
+}
+
+void loan_print_all_history(HistoryList *history) {
+    if (!history || history->quantity == 0) {
+        printf("Nenhum historico disponivel.\n");
+        return;
+    }
+    
+    printf("\n--- HISTORICO COMPLETO ---\n");
+    printf("ID  | Usuario              | Livro                | Data Emprestimo | Data Devolucao\n");
+    printf("\n");
+    
+    Loan *current = history->head;
+    while (current) {
+        printf("%3d | %-20s | %-20s | %02d/%02d/%04d | %02d/%02d/%04d\n",
+               current->id,
+               current->leitor->name,
+               current->book->title,
+               current->DataLoan.day, current->DataLoan.month, current->DataLoan.year,
+               current->DateReturn.day, current->DateReturn.month, current->DateReturn.year);
+        current = current->nextGlobal;
+    }
+}

@@ -43,11 +43,13 @@ void show_admin_menu(void)
     printf("5. Registar utilizador\n");
     printf("6. Atualizar utilizador\n");
     printf("7. Remover utilizador\n");
-    printf("8. Consultar utilizadores\n");
+    printf("8. Consultar utilizadores\n"); 
     printf("9. Emprestimo\n");
-    printf("10. Devolucao\n");
-    printf("11. Reservas\n");
-    printf("12. Relatorios\n");
+    printf("10. Fazer Devolucao\n");
+    printf("11. Consultar Reservas\n");
+    printf("12. Consultar Empréstimos\n");
+    printf("13. Relatorios\n");
+    printf("14. Historico\n");
     printf("0. Logout\n");
     printf("Opcao: ");
 }
@@ -441,7 +443,7 @@ void run_system(void)
                         break;
 
                     case 12:
-                        printf("Relatorios ainda nao implementados.\n");
+                        loan_print_all_active(globalLoans);
                         break;
 
                     case 0:
@@ -487,12 +489,84 @@ void run_system(void)
                     }
 
                     case 3:
-                        printf("Emprestimo ainda nao implementado.\n");
+
+                        printf("\n--- EFECTUAR EMPRÉSTIMO ---\n");
+                        printf("\n--- Liros ---\n");
+                        book_print_all(bookRoot);
+                        printf("\n--- Utilizadores ---\n");
+                        user_print_all(userRoot);
+
+                        int userId = session->currentUser->id, bookId;
+
+                        printf("Inserir ID do Livro: ");
+                        if (!safe_read_int(&bookId)) break;
+
+                        User *selectedUser = user_find(userRoot, userId);
+                        Book *selectedBook = book_find(bookRoot, bookId);
+                        if(!selectedUser || !selectedBook) {
+                            printf("Usuário ou Livro não encontrado");
+                            break;
+                        }
+                        if(!user_can_borrow(selectedUser) || !book_can_borrow(selectedBook, selectedUser->age))
+                         break;
+
+                        if (loan_find_by_user_and_book(globalLoans, userId, bookId)) {
+                             printf("Utilizador já possui este livro emprestado.\n");
+                            break;
+                        }
+
+                        if (selectedBook->availableQuantity == 0) {
+                            printf("Livro indisponível no momento.\n");
+                            printf("Deseja entrar na fila de reservas? (1-Sim / 0-Não): ");
+                            int reserve;
+                            if (safe_read_int(&reserve) && reserve == 1) {
+                                 if (reserve_add(selectedBook, selectedUser)) {
+                                    printf("Reserva realizada com sucesso!\n");
+                                }
+                            }
+                            break;
+                        }
+
+                        Date today = date_today();
+                        Date dateExpected = date_add_days(today, 15);
+
+                        Loan *newLoan = loan_create(
+                            globalLoans->quantity + 1,  
+                            selectedBook,
+                            selectedUser,
+                            today,
+                            dateExpected
+                        );
+
+                        if (!newLoan) {
+                            printf("Erro ao criar empréstimo.\n");
+                            break;
+                        }
+
+                        loan_add_to_global(globalLoans, newLoan);
+                        loan_add_to_user(selectedUser, newLoan);
+                            
+                        selectedBook->availableQuantity--;
+                        selectedBook->timesBorrowed++;
+
+                        printf("\nEMPRÉSTIMO REALIZADO COM SUCESSO!\n");
+                        printf("   ID do Empréstimo: %d\n", newLoan->id);
+                        printf("   Livro: %s\n", selectedBook->title);
+                        printf("   Usuário: %s\n", selectedUser->name);
+                        printf("   Data do Empréstimo: %02d/%02d/%04d\n", 
+                            today.day, today.month, today.year);
+                        printf("   Data Prevista de Devolução: %02d/%02d/%04d\n", 
+                            dateExpected.day, dateExpected.month, dateExpected.year);
+                        printf("   Quantidade Disponível: %d\n", selectedBook->availableQuantity);
+                        
+    
+                        printf(" Empréstimos Ativos do Usuário: %d/3\n", selectedUser->activeLoans);
+
                         break;
 
                     case 4:
                         printf("\n--- OS MEUS EMPRÉSTIMOS ---\n");
-                        int userId = session->currentUser->id;
+                         userId = session->currentUser->id;
                         if (userId) {
                             User *user = user_find(userRoot, userId);
                             if (user) {
@@ -503,14 +577,32 @@ void run_system(void)
                         }
                         break;
 
-                    case 5:
-                        printf("Reservas ainda nao implementado.\n");
+                    case 5: 
+                        printf("\n--- MINHAS RESERVAS ---\n");
+                         userId = session->currentUser->id;
+                        if (userId) {
+                            User *user = user_find(userRoot, userId);
+                            if (user) {
+                                reserve_print_user_reservations(bookRoot, user);
+                            } else {
+                                printf("Usuario nao encontrado.\n");
+                            }
+                        }
                         break;
 
-                    case 6:
-                        printf("Historico ainda nao implementado.\n");
+                    case 6:  
+                        printf("\n--- MEU HISTORICO ---\n");
+                          userId = session->currentUser->id;
+                        if (userId) {
+                            User *user = user_find(userRoot, userId);
+                            if (user) {
+                                loan_print_user_history(history, userId);
+                            } else {
+                                printf("Usuario nao encontrado.\n");
+                            }
+                        }
                         break;
-
+      
                     case 0:
                         logout(session);
                         break;
