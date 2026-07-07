@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "avl.h"
+#include "reserve.h"
 
 
 typedef struct Book{
@@ -17,6 +18,7 @@ typedef struct Book{
     int totalQuantity;
     int availableQuantity;
     int timesBorrowed;
+    ReserveQueue *reservations;
 
 } Book;
 
@@ -53,5 +55,6 @@ Book *book_find(AVLNode *root, int id);
 int book_can_borrow(Book *book, int userAge);
 int book_decrease_available(Book *book);
 int book_increase_available(Book *book);
+void book_print_unavailable(AVLNode *root);
 
 #endif

@@ -4,6 +4,7 @@
 
 #include "book.h"
 #include "validation.h"
+#include "reserve.h"
 
 int book_id_counter = 1;
 
@@ -46,6 +47,8 @@ Book *create_book(const char *title, const char *author, const char *publisher, 
     book->availableQuantity = totalQuantity;
 
     book->timesBorrowed = 0;
+
+    book->reservations = NULL; 
 
     return book;
 }
@@ -102,7 +105,9 @@ void print_book(void *data)
 
     Book *book = (Book *)data;
 
-    printf("ID: %d | Título: %s | Autor: %s | Categoria: %s | Ano: %d | MinIdade: %d | Disponivel: %d/%d | Emprestimos: %d\n",
+    int queueSize = (book->reservations != NULL) ? book->reservations->size : 0;
+
+    printf("ID: %d | Título: %s | Autor: %s | Categoria: %s | Ano: %d | MinIdade: %d | Disponivel: %d/%d | Emprestimos: %d | EM espera: %d\n",
            book->id,
            book->title,
            book->author,
@@ -111,7 +116,8 @@ void print_book(void *data)
            book->minAge,
            book->availableQuantity,
            book->totalQuantity,
-           book->timesBorrowed);
+           book->timesBorrowed,
+           queueSize);
 }
 
 void book_print_all(AVLNode *root)
@@ -132,8 +138,15 @@ void free_book(void *data)
     if (data == NULL)
         return;
 
-    free(data);
+    Book *book = (Book *)data;
+
+    if (book->reservations != NULL) {
+        reserve_queue_destroy(book->reservations);
+    }
+
+    free(book);
 }
+
 
 AVLNode *book_insert(AVLNode *root, Book *book)
 {
@@ -169,11 +182,12 @@ int book_can_borrow(Book *book, int userAge)
         return 0;
     }
 
+    /*
     if (book->availableQuantity <= 0)
     {
         printf("Erro: livro indisponível.\n");
         return 0;
-    }
+    } */
 
     if (userAge < book->minAge)
     {
@@ -215,4 +229,28 @@ int book_increase_available(Book *book)
     book->availableQuantity++;
 
     return 1;
+}
+
+void book_print_unavailable(AVLNode *root) {
+    if (!root) {
+        printf("Nenhum livro cadastrado.\n");
+        return;
+    }
+    
+    if (root->left) {
+        book_print_unavailable(root->left);
+    }
+    
+    Book *book = (Book*)root->data;
+    if (book->availableQuantity == 0) {
+        printf("ID: %d | %s | %s | Fila: %d pessoas\n",
+               book->id,
+               book->title,
+               book->author,
+               book->reservations ? book->reservations->size : 0);
+    }
+    
+    if (root->right) {
+        book_print_unavailable(root->right);
+    }
 }
