@@ -286,15 +286,17 @@ static void handle_admin_delete_user(AVLNode **userRoot)
 {
     int id;
 
-
     printf("ID do utilizador: ");
 
     if (!safe_read_int(&id))
         return;
 
-
     User *user = user_find(*userRoot,id);
 
+    if(user->role == ROLE_ADMIN){
+        printf("Admin não pode ser deletado!");
+        return;
+    }
 
     if(user == NULL)
     {
@@ -405,10 +407,13 @@ static void handle_loan_creation(AVLNode *bookRoot, AVLNode *userRoot,
     printf("   Emprestimos Ativos do Usuario: %d/3\n", selectedUser->activeLoans);
 }
 
-static void handle_return_book(LoanList *globalLoans, HistoryList *history, AVLNode *bookRoot)
+static void handle_return_book(LoanList *globalLoans, HistoryList *history, AVLNode *bookRoot, int id)
 {
     printf("\n--- EFETUAR DEVOLUCAO ---\n");
-    printf("1. Devolver por ID do Livro e ID do Usuario\n");
+    if(id != 0) 
+        printf("1. Devolver por ID do Livro\n");
+    else
+        printf("1. Devolver por ID do Livro e ID do Usuario\n");
     printf("2. Devolver por ID do Emprestimo\n");
     printf("3. Ver todos os emprestimos ativos\n");
     printf("Opcao: ");
@@ -421,8 +426,14 @@ static void handle_return_book(LoanList *globalLoans, HistoryList *history, AVLN
             int bookId, userId;
             printf("ID do Livro: ");
             if (!safe_read_int(&bookId)) return;
-            printf("ID do Usuario: ");
-            if (!safe_read_int(&userId)) return;
+
+            if(id == 0) {
+                printf("ID do Usuario: ");
+                if (!safe_read_int(&userId)) return;
+            } else {
+                userId = id;
+            }
+                
             process_book_return(globalLoans, history, bookRoot, bookId, userId);
             break;
         }
@@ -612,7 +623,7 @@ static void handle_register_account(AVLNode **userRoot)
     if (!safe_read_int(&age)) 
         return;
 
-    if(age < 5 || age > 120)
+    if(age < 10 || age > 120)
     {
         printf("Idade invalida.\n");
         return;
@@ -658,6 +669,7 @@ void run_system(void)
         globalLoans->tail = NULL;
         globalLoans->quantity = 0;
     }
+
     HistoryList *history = (HistoryList*)malloc(sizeof(HistoryList));
 
     if(history == NULL)
@@ -671,9 +683,9 @@ void run_system(void)
 
     Session *session = create_session();
 
-    load_all_data(&userRoot, &bookRoot, &globalLoans, &history);
-
     create_default_admin(&userRoot);
+
+    load_all_data(&userRoot, &bookRoot, &globalLoans, &history);
 
     int option;
 
@@ -760,7 +772,7 @@ void run_system(void)
                         break;
 
                     case 10:
-                        handle_return_book(globalLoans, history, bookRoot);
+                        handle_return_book(globalLoans, history, bookRoot, 0);
                         break;
 
                     case 11:
@@ -820,7 +832,11 @@ void run_system(void)
 
                     case 6:
                         handle_user_my_history(history, userRoot, session->currentUser->id);
-                        break;
+                        break; 
+
+                     case 7:
+                        handle_return_book(globalLoans, history, bookRoot, session->currentUser->id);
+                        break; 
 
                     case 0:
                         logout(session);

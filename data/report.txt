@@ -2,35 +2,36 @@ Relatorio
 
 Livros:
 Mias Emprestados:
+1.  O Odio que voce semeia - 4 borrows
 
 Menos Emprestados:
+1.  O Odio que voce semeia - 4 borrows
 
-Nunca Emprestados (10):
-- 2
--  De Zero a Um
+Nunca Emprestados (7):
 -  Algoritmo Mestre
 -  Código Limpo
 -  A República
 -  Uma Breve História do Tempo
 -  Arquitetura Limpa
 -  Como as Democracias Morrem
-- Amores Improvaveis 2
-- O Odio que voce semeia
+-  Amores Improvaveis 2
 
- Disponiveis: 9
+ Disponiveis: 7
 Indisponiveis: 1
 
  Leitores :
 Mais Activos:
+1. FABIO - 1 empréstimos activos
 
  Com mais empréstimos activos:
+1. FABIO - 1 loans
 
- Sem EMpréstimos: 1
+ Sem EMpréstimos: 3
  Passaram o praso: 0
 
 Totais:
-Livros: 10
-Leitores: 1
-Empréstimos: 0
-Devoluções: 0
+Livros: 8
+Leitores: 4
+Empréstimos: 4
+Devoluções: 3
 Reservas: 0

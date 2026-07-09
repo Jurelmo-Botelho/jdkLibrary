@@ -55,7 +55,7 @@ User *create_user(const char *username, const char *password, const char *name, 
     if (!validate_name(name))
         return NULL;
 
-    if (age < 1 || age > 120)
+    if (age < 10 || age > 120)
     {
         printf("Erro: idade invalida.\n");
         return NULL;

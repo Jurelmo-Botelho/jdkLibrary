@@ -480,6 +480,13 @@ void load_books_from_file(AVLNode **bookRoot, const char *filename) {
                &totalQty, &availableQty, &timesBorrowed);
         
         Book *book = create_book(title, author, publisher, category, year, minAge, totalQty);
+
+        
+        if(availableQty > totalQty){
+            printf("Quantidade de Livros Disponíveis não pode ser maior que a total\n");
+            continue;
+        }
+
         if (book) {
             book->id = id;
             book->availableQuantity = availableQty;

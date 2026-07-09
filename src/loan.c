@@ -75,6 +75,23 @@ void loan_add_to_user(User *user, Loan *loan) {
     user->activeLoans++;
 }
 
+void loan_add_to_user_loading(User *user, Loan *loan) {
+    if (!user || !loan) return;
+    
+    loan->nextUser = NULL;
+    
+    if (user->myLoans.head == NULL) {
+        user->myLoans.head = loan;
+        user->myLoans.tail = loan;
+    } else {
+        user->myLoans.tail->nextUser = loan;
+        user->myLoans.tail = loan;
+    }
+    
+    user->myLoans.quantity++;
+    // NÃO incrementa activeLoans
+}
+
 void loan_print_user_loans(User *user) {
     if (!user) {
         printf("Usuário inválido.\n");
@@ -130,7 +147,7 @@ void loan_print_all_active(LoanList *globalList) {
                current->id,
                current->book->title,
                current->leitor->name);
-        printf("   Data: %02d/%02d/%04d → %02d/%02d/%04d\n",
+        printf("   Data: %02d/%02d/%04d - %02d/%02d/%04d\n",
                current->DataLoan.day,
                current->DataLoan.month,
                current->DataLoan.year,
@@ -177,7 +194,7 @@ void process_reservations_after_return(LoanList *globalList, HistoryList *histor
     
     if (nextUser) {
         Date hoje = date_today();
-        Date dataPrevista = date_add_days(hoje, 15);
+        Date dataPrevista = date_add_days(hoje, DEFAULT_LOAN_DAYS);
         
         Loan *newLoan = loan_create(
             loan_id_counter++,
@@ -464,8 +481,7 @@ void load_loans_from_file(AVLNode *bookRoot, AVLNode *userRoot,
         
         if (loan->status == LOAN_ACTIVE) {
             loan_add_to_global(*globalList, loan);
-            loan_add_to_user(user, loan);
-            book->availableQuantity--;
+            loan_add_to_user_loading(user, loan); 
         }
         
         if (loanId >= loan_id_counter) {

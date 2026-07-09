@@ -217,7 +217,6 @@ AVLNode *avl_remove(AVLNode *root, int key)
 }
 
 //Libertação
-
 void avl_destroy(AVLNode *root)
 {
     if (root == NULL)

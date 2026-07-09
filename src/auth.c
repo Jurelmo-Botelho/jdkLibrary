@@ -120,7 +120,7 @@ User *register_user(AVLNode **userRoot, const char *username, const char *passwo
 
     *userRoot = user_insert(*userRoot, newUser);
 
-    save_user_to_file(newUser, "data/users.txt");
+   // save_user_to_file(newUser, "data/users.txt");
 
     printf("Utilizador registado com sucesso.\n");
 
@@ -142,7 +142,7 @@ Book *register_book(AVLNode **bookRoot, const char *title, const char *author, c
 
     *bookRoot = book_insert(*bookRoot, book);
 
-    save_book_to_file(book, "data/books.txt");
+    //save_book_to_file(book, "data/books.txt");
 
     printf("Livro registado com sucesso.\n");
 
